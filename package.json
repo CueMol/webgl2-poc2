@@ -1,0 +1,24 @@
+{
+  "name": "webgl2-poc2",
+  "version": "1.0.0",
+  "description": "WebGL2 PoC2",
+  "dependencies": {
+    "bindings": "*",
+    "cmake-js": "^6.2.1",
+    "electron": "^15.2.0",
+    "gl-matrix": "^3.4.3"
+  },
+  "scripts": {
+    "install": "cmake-js compile",
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron-rebuild": "^3.2.3",
+    "node-addon-api": "^4.2.0"
+  },
+  "cmake-js": {
+    "runtime": "electron",
+    "runtimeVersion": "15.2.0",
+    "arch": "x64"
+  }
+}
