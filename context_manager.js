@@ -146,10 +146,15 @@ module.exports = class Manager {
         this._draw_data[new_id] = obj;
         this._new_draw_id ++;
 
+        // console.log("new_id=", new_id);
+        // console.log("buf=", this._draw_data[id]._buf);
         return new_id;
     }
 
     getBuffer(id) {
+        console.log("getBuffer id=", id);
+        // console.log("getBuffer data=", this._draw_data[id]);
+        console.log("getBuffer _buf=", this._draw_data[id]._buf);
         return this._draw_data[id]._buf;
     }
 

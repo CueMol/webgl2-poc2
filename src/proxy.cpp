@@ -35,7 +35,6 @@ Proxy::Proxy(const Napi::CallbackInfo& info)
 Napi::Value Proxy::SetManager(const Napi::CallbackInfo& info)
 {
     Napi::Env env = info.Env();
-    // printf("Proxy::SetManager called\n");
 
     if (info.Length() != 1) {
         Napi::TypeError::New(env, "Wrong number of arguments")
@@ -51,6 +50,7 @@ Napi::Value Proxy::SetManager(const Napi::CallbackInfo& info)
 
     disp_mgr_ = Napi::Persistent(info[0].As<Napi::Object>());
 
+    printf("Proxy::SetManager OK\n");
     return env.Undefined();
 }
 
@@ -78,9 +78,11 @@ Napi::Value Proxy::Create(const Napi::CallbackInfo& info)
     const auto buffer_size = VERTEX_NUMS * (VERTEX_SIZE + COLOR_SIZE);
     const auto nelems = VERTEX_NUMS;
     buffer_id_ = createBuffer(info, buffer_size, nelems);
+    printf("Proxy::Create create buffer OK (%d)\n", buffer_id_);
 
     // Call: GetBuffer(buf_id) -> buf_ptr
     float* data = getBuffer(info, buffer_id_);
+    printf("Proxy::Create get buffer OK (%p)\n", data);
 
     // Initialize vertex buffer
     {
@@ -96,7 +98,7 @@ Napi::Value Proxy::Create(const Napi::CallbackInfo& info)
         }
     }
 
-    // printf("Proxy::Create called\n");
+    printf("Proxy::Create OK\n");
     return env.Undefined();
 }
 Napi::Value Proxy::Render(const Napi::CallbackInfo& info)
@@ -124,7 +126,7 @@ int Proxy::createBuffer(const Napi::CallbackInfo& info, int buffer_size, int nel
     Napi::Env env = info.Env();
 
     auto method = disp_mgr_.Get("createBuffer").As<Napi::Function>();
-    auto rval = method.Call({Napi::Number::New(env, buffer_size),
+    auto rval = method.Call(disp_mgr_.Value(), {Napi::Number::New(env, buffer_size),
             Napi::Number::New(env, nelems)});
 
     int buffer_id = rval.As<Napi::Number>().Int32Value();
@@ -142,9 +144,13 @@ float* Proxy::getBuffer(const Napi::CallbackInfo& info, int buffer_id)
     Napi::Env env = info.Env();
 
     auto method = disp_mgr_.Get("getBuffer").As<Napi::Function>();
-    auto rval = method.Call({Napi::Number::New(env, buffer_id)});
-
-    auto array_buf = rval.As<Napi::ArrayBuffer>();
+    auto rval = method.Call(disp_mgr_.Value(), {Napi::Number::New(env, buffer_id)});
+    printf("method call getBuffer OK\n");
+    printf("is typed array: %d\n", rval.IsTypedArray());
+    printf("is array: %d\n", rval.IsArray());
+    printf("is array buffer: %d\n", rval.IsArrayBuffer());
+    
+    auto array_buf = rval.As<Napi::Float32Array>();
     float *pbuf = static_cast<float*>(array_buf.Data());
     size_t len = array_buf.ByteLength();
     printf("buffer ptr: %p, size %lu\n", pbuf, len / sizeof(float));
@@ -157,7 +163,7 @@ void Proxy::sendBuffer(const Napi::CallbackInfo& info, int buffer_id)
     Napi::Env env = info.Env();
 
     auto method = disp_mgr_.Get("sendBuffer").As<Napi::Function>();
-    method.Call({Napi::Number::New(env, buffer_id)});
+    method.Call(disp_mgr_.Value(), {Napi::Number::New(env, buffer_id)});
 }
 
 // Napi::Value Proxy::SetManager(const Napi::CallbackInfo& info) {
