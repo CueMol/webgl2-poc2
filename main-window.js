@@ -31,9 +31,17 @@ let fpsElem, canvas;
 window.addEventListener("load", () => {
     console.log("onLoad() called!!");
 
-    canvas = document.getElementById('canvas_area');
+    let canvas = document.getElementById('canvas_area');
     // let id = mgr.registerCanvas(canvas);
     // console.log("register canvas id:", canvas.getAttribute("mgr_idx"));
+    canvas.addEventListener("mousedown", (event) => {
+        console.log("canvas mousedown");
+    });
+    canvas.addEventListener("mouseup", (event) => {
+        console.log("canvas mouseup");
+    });
+    
+    /////
 
     elem = document.getElementById("update_button");
     elem.addEventListener("click", (event) => {

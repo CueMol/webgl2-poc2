@@ -82,6 +82,9 @@ Napi::Value Proxy::Create(const Napi::CallbackInfo& info)
 
     // Call: GetBuffer(buf_id) -> buf_ptr
     float* data = getBuffer(info, buffer_id_);
+    if (data==nullptr)
+        return env.Null();
+
     printf("Proxy::Create get buffer OK (%p)\n", data);
 
     // Initialize vertex buffer
@@ -108,12 +111,15 @@ Napi::Value Proxy::Render(const Napi::CallbackInfo& info)
     Napi::Env env = info.Env();
 
     float* data = getBuffer(info, buffer_id_);
+    if (data==nullptr)
+        return env.Null();
+        
     updateData(data);
 
     // sendBuffer(bufid) -> void
     sendBuffer(info, buffer_id_);
 
-    return info.Env().Undefined();
+    return env.Undefined();
 }
 
 //////////
@@ -145,15 +151,16 @@ float* Proxy::getBuffer(const Napi::CallbackInfo& info, int buffer_id)
 
     auto method = disp_mgr_.Get("getBuffer").As<Napi::Function>();
     auto rval = method.Call(disp_mgr_.Value(), {Napi::Number::New(env, buffer_id)});
-    printf("method call getBuffer OK\n");
-    printf("is typed array: %d\n", rval.IsTypedArray());
-    printf("is array: %d\n", rval.IsArray());
-    printf("is array buffer: %d\n", rval.IsArrayBuffer());
+    if (!rval.IsTypedArray()) {
+        Napi::TypeError::New(env, "getBuffer returned unexpected type")
+            .ThrowAsJavaScriptException();
+        return nullptr;
+    }
     
     auto array_buf = rval.As<Napi::Float32Array>();
     float *pbuf = static_cast<float*>(array_buf.Data());
     size_t len = array_buf.ByteLength();
-    printf("buffer ptr: %p, size %lu\n", pbuf, len / sizeof(float));
+    // printf("buffer ptr: %p, size %lu\n", pbuf, len / sizeof(float));
 
     return pbuf;
 }

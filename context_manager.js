@@ -63,6 +63,10 @@ class DrawEntry {
         this._buf = new Float32Array(nsize);
         console.log("alloc Float32Array nsize=", nsize);
 
+        // VAO
+        this._vao = gl.createVertexArray();
+        gl.bindVertexArray(this._vao);
+
         // Prepare VBO
         this._vertexBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
@@ -72,16 +76,19 @@ class DrawEntry {
         gl.vertexAttribPointer(this._colorAttribLocation, COLOR_SIZE, gl.FLOAT, false, STRIDE, COLOR_OFFSET);
         gl.bufferData(gl.ARRAY_BUFFER, this._buf, gl.STATIC_DRAW);
 
+        gl.bindVertexArray(null);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
     }
 
     draw(gl) {
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
-        // gl.enableVertexAttribArray(this._vertexAttribLocation);
-        // gl.enableVertexAttribArray(this._colorAttribLocation);
-        gl.vertexAttribPointer(this._vertexAttribLocation, VERTEX_SIZE, gl.FLOAT, false, STRIDE, POSITION_OFFSET);
-        gl.vertexAttribPointer(this._colorAttribLocation, COLOR_SIZE, gl.FLOAT, false, STRIDE, COLOR_OFFSET);
+        gl.bindVertexArray(this._vao);
+
+        // gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
+        // gl.vertexAttribPointer(this._vertexAttribLocation, VERTEX_SIZE, gl.FLOAT, false, STRIDE, POSITION_OFFSET);
+        // gl.vertexAttribPointer(this._colorAttribLocation, COLOR_SIZE, gl.FLOAT, false, STRIDE, COLOR_OFFSET);
         gl.drawArrays(gl.TRIANGLES, 0, this._nelems);
+
+        gl.bindVertexArray(null);
     }
 }
 
@@ -113,35 +120,14 @@ module.exports = class Manager {
 
     // Create new WebGL buffer
     // Called from native side
-    createBufferOld(nsize, num_elems) {
-        const gl = this._context;
-        
-        this._buf = new Float32Array(nsize);
-        console.log("alloc Float32Array nsize=", nsize);
-
-        // Prepare VBO
-        this._vertexBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
-        gl.enableVertexAttribArray(this._vertexAttribLocation);
-        gl.enableVertexAttribArray(this._colorAttribLocation);
-        gl.vertexAttribPointer(this._vertexAttribLocation, VERTEX_SIZE, gl.FLOAT, false, STRIDE, POSITION_OFFSET);
-        gl.vertexAttribPointer(this._colorAttribLocation, COLOR_SIZE, gl.FLOAT, false, STRIDE, COLOR_OFFSET);
-        gl.bufferData(gl.ARRAY_BUFFER, this._buf, gl.STATIC_DRAW);
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, null);
-
-        // num of drawing elements in the buffer
-        this._num_elems = num_elems;
-        console.log("num_elems=", num_elems);
-        return this._buf;
-    }
-
-    // Create new WebGL buffer
-    // Called from native side
     createBuffer(nsize, num_elems) {
         const gl = this._context;
         
-        let obj = new DrawEntry(gl, this._vertexAttribLocation, this._colorAttribLocation, nsize, num_elems);
+        let obj = new DrawEntry(gl,
+                                this._vertexAttribLocation,
+                                this._colorAttribLocation,
+                                nsize,
+                                num_elems);
         const new_id = this._new_draw_id
         this._draw_data[new_id] = obj;
         this._new_draw_id ++;
@@ -152,9 +138,6 @@ module.exports = class Manager {
     }
 
     getBuffer(id) {
-        console.log("getBuffer id=", id);
-        // console.log("getBuffer data=", this._draw_data[id]);
-        console.log("getBuffer _buf=", this._draw_data[id]._buf);
         return this._draw_data[id]._buf;
     }
 
@@ -162,9 +145,7 @@ module.exports = class Manager {
     // Called from native side
     sendBuffer(id) {
         const gl = this._context;
-
         const obj = this._draw_data[id];
-
         // Transfer VBO to GPU
         gl.bindBuffer(gl.ARRAY_BUFFER, obj._vertexBuffer);
         gl.bufferSubData(gl.ARRAY_BUFFER, 0, obj._buf);
@@ -196,11 +177,11 @@ module.exports = class Manager {
 
         gl.useProgram(this._program);
 
-        this.setUpModelMat(gl, this._radian);
+        this.setUpModelMat(this._radian);
         let cx = canvas.width;
         let cy = canvas.height;
         gl.viewport(0, 0, cx, cy);
-        this.setUpProjMat(gl, cx, cy);
+        this.setUpProjMat(cx, cy);
 
         // gl.enableVertexAttribArray(this._vertexAttribLocation);
         // gl.enableVertexAttribArray(this._colorAttribLocation);
@@ -222,7 +203,8 @@ module.exports = class Manager {
     }
     
 
-    setUpModelMat(gl, radian) {
+    setUpModelMat(radian) {
+        const gl = this._context;
         const model = glmat.mat4.create();
         glmat.mat4.identity(model);
         glmat.mat4.translate(model, model, [0, 0, -this._dist]);
@@ -233,7 +215,8 @@ module.exports = class Manager {
         gl.uniformMatrix4fv(this._modelLocation, false, model);
     }
 
-    setUpProjMat(gl, cx, cy) {
+    setUpProjMat(cx, cy) {
+        const gl = this._context;
         const projection = glmat.mat4.create();
         const slabdepth = 100.0;
         const slabnear = this._dist-slabdepth/2.0;
