@@ -23,6 +23,9 @@ private:
     RandomGenerator rng_;
     // Nan::Persistent<v8::Object> mgr_;
 
+    /// GL Vertex Buffer ID
+    int buffer_id_;
+
     /// JS-side WebGL display manager
     Napi::ObjectReference disp_mgr_;
 
@@ -59,7 +62,9 @@ private:
         }
     }
 
+    int createBuffer(const Napi::CallbackInfo& info, int buffer_size, int nelems);
     float *getBuffer(const Napi::CallbackInfo& info, int bufid);
+    void sendBuffer(const Napi::CallbackInfo& info, int bufid);
 
 };
 
