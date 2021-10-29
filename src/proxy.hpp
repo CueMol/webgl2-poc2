@@ -5,11 +5,20 @@
 #include <random>
 #include <vector>
 #include "random_generator.hpp"
+#include "draw_attr_elems.hpp"
 
 namespace gfx_render {
 
+struct DrawElem {
+    float x, y, z;
+    float r, g, b, a;
+};
+
 class Proxy : public Napi::ObjectWrap<Proxy>
 {
+private:
+    gfx::DrawAttrArray<DrawElem> vert_buf_;
+
 public:
     static Napi::Object Init(Napi::Env env, Napi::Object exports);
     Proxy(const Napi::CallbackInfo& info);

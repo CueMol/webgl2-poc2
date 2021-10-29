@@ -1,6 +1,7 @@
 #include "proxy.hpp"
-#include <fstream>
 
+#include <fstream>
+#include <cstdio>
 
 namespace gfx_render {
 
@@ -21,15 +22,11 @@ Napi::Object Proxy::Init(Napi::Env env, Napi::Object exports) {
 }
 
 Proxy::Proxy(const Napi::CallbackInfo& info)
-    : Napi::ObjectWrap<Proxy>(info) {
-    // Napi::Env env = info.Env();
-    // int length = info.Length();
-    // if (length <= 0 || !info[0].IsNumber()) {
-    //     Napi::TypeError::New(env, "Number expected").ThrowAsJavaScriptException();
-    //     return;
-    // }
-    // Napi::Number value = info[0].As<Napi::Number>();
-    // value_ = value.DoubleValue();
+    : Napi::ObjectWrap<Proxy>(info)
+{
+    vert_buf_.setAttrSize(2);
+    vert_buf_.setAttrInfo(0, "vertexPosition", 3, gfx::FLOAT32, offsetof(DrawElem, x));
+    vert_buf_.setAttrInfo(1, "color", 4, gfx::FLOAT32, offsetof(DrawElem, r));
 }
 
 //////////
@@ -178,16 +175,41 @@ int Proxy::createShader(const Napi::CallbackInfo& info)
     return buffer_id;
 }
 
+template <typename ... Args>
+std::string format(const std::string& fmt, Args ... args )
+{
+    size_t len = std::snprintf( nullptr, 0, fmt.c_str(), args ... );
+    std::vector<char> buf(len + 1);
+    std::snprintf(&buf[0], len + 1, fmt.c_str(), args ... );
+    return std::string(&buf[0], &buf[0] + len);
+}
+
 int Proxy::createBuffer(const Napi::CallbackInfo& info, int buffer_size, int nelems)
 {
+    std::string json_str;
+    json_str += "[";
+    for (size_t i=0; i<vert_buf_.getAttrSize(); ++i) {
+        if (i>0) json_str += ",";
+        json_str += "{";
+        json_str += format("\"name\": \"%s\",", vert_buf_.getAttrName(i).c_str());
+        json_str += format("\"nelems\": \"%d\",", vert_buf_.getAttrElemSize(i));
+        json_str += format("\"itype\": \"%d\",", vert_buf_.getAttrTypeID(i));
+        json_str += format("\"npos\": \"%d\"", vert_buf_.getAttrPos(i));
+        json_str += "}";
+    }
+    json_str += "]";
+    // printf("json_str:\n%s\n", json_str.c_str());
+
     // Call the JS-side display manager's getBuffer() method
     // to get the GL-bound buffer array
 
     Napi::Env env = info.Env();
 
     auto method = disp_mgr_.Get("createBuffer").As<Napi::Function>();
-    auto rval = method.Call(disp_mgr_.Value(), {Napi::Number::New(env, buffer_size),
-            Napi::Number::New(env, nelems)});
+    auto rval = method.Call(disp_mgr_.Value(),
+                            { Napi::Number::New(env, buffer_size),
+                              Napi::Number::New(env, nelems),
+                              Napi::String::New(env, json_str) });
 
     int buffer_id = rval.As<Napi::Number>().Int32Value();
     printf("buffer ID: %d\n", buffer_id);

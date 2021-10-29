@@ -52,6 +52,15 @@ function loadShader(gl) {
 }
 
 
+class AttrInfo {
+    constructor(iloc, nelems, itype, ipos) {
+        this.iloc = iloc;
+        this.nelems = nelems;
+        this.itype = itype;
+        this.ipos = ipos;
+    }
+}
+
 class DrawEntry {
     constructor(gl, val, cal, nsize, nelems) {
         this._nsize = nsize;
@@ -68,8 +77,8 @@ class DrawEntry {
         this._vertexBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
         gl.enableVertexAttribArray(val);
-        gl.enableVertexAttribArray(cal);
         gl.vertexAttribPointer(val, VERTEX_SIZE, gl.FLOAT, false, STRIDE, POSITION_OFFSET);
+        gl.enableVertexAttribArray(cal);
         gl.vertexAttribPointer(cal, COLOR_SIZE, gl.FLOAT, false, STRIDE, COLOR_OFFSET);
         gl.bufferData(gl.ARRAY_BUFFER, this._buf, gl.STATIC_DRAW);
 
@@ -158,9 +167,18 @@ module.exports = class Manager {
 
     // Create new WebGL buffer
     // Called from native side
-    createBuffer(nsize, num_elems) {
+    createBuffer(nsize, num_elems, elem_info_str) {
         const gl = this._context;
-        
+        // console.log("elem info:", elem_info_str);
+        let elem_info = JSON.parse(elem_info_str);
+        console.log("elem info:", elem_info);
+
+        let prog_id = 0;
+        let program = this._prog_data[prog_id];
+        elem_info.forEach((value) => {
+            let aloc = gl.getAttribLocation(program, value["name"]);
+        });
+
         let obj = new DrawEntry(gl,
                                 this._vertexAttribLocation,
                                 this._colorAttribLocation,
