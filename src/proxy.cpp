@@ -1,4 +1,6 @@
 #include "proxy.hpp"
+#include <fstream>
+
 
 namespace gfx_render {
 
@@ -74,6 +76,15 @@ Napi::Value Proxy::Create(const Napi::CallbackInfo& info)
         return env.Null();
     }
 
+    // Setup shader
+    int shader_id = createShader(info);
+    if (shader_id < 0) {
+        Napi::TypeError::New(env, "Create shader failed")
+            .ThrowAsJavaScriptException();
+        return env.Null();
+    }
+    shader_id_ = shader_id;
+
     // Call: CreateBuffer(bufsize, nelems) -> buf_id
     const auto buffer_size = VERTEX_NUMS * (VERTEX_SIZE + COLOR_SIZE);
     const auto nelems = VERTEX_NUMS;
@@ -123,6 +134,49 @@ Napi::Value Proxy::Render(const Napi::CallbackInfo& info)
 }
 
 //////////
+
+int Proxy::createShader(const Napi::CallbackInfo& info)
+{
+    Napi::Env env = info.Env();
+
+    std::string vert_shader_fname = "shaders/vertex_shader.glsl";
+    std::string vert_src;
+    {
+        std::ifstream ifs(vert_shader_fname);
+        if (!ifs) {
+            printf("file: %s not found\n", vert_shader_fname.c_str());
+            return -1;
+        }
+        vert_src = std::string(std::istreambuf_iterator<char>(ifs),
+                               std::istreambuf_iterator<char>());
+    }
+    printf("file: %s OK\n", vert_shader_fname.c_str());
+    // printf("vert src:\n%s\n", vert_src.c_str());
+
+    std::string frag_shader_fname = "shaders/fragment_shader.glsl";
+    std::string frag_src;
+    {
+        std::ifstream ifs(frag_shader_fname);
+        if (!ifs) {
+            printf("file: %s not found\n", frag_shader_fname.c_str());
+            return -1;
+        }
+        frag_src = std::string(std::istreambuf_iterator<char>(ifs),
+                               std::istreambuf_iterator<char>());
+    }
+    printf("file: %s OK\n", frag_shader_fname.c_str());
+    // printf("frag src:\n%s\n", frag_src.c_str());
+
+    auto method = disp_mgr_.Get("createShader").As<Napi::Function>();
+    auto rval = method.Call(disp_mgr_.Value(),
+                            {Napi::String::New(env, vert_src),
+                             Napi::String::New(env, frag_src)});
+
+    int buffer_id = rval.As<Napi::Number>().Int32Value();
+    printf("shader ID: %d\n", buffer_id);
+
+    return buffer_id;
+}
 
 int Proxy::createBuffer(const Napi::CallbackInfo& info, int buffer_size, int nelems)
 {

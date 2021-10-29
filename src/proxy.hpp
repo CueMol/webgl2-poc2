@@ -26,6 +26,9 @@ private:
     /// GL Vertex Buffer ID
     int buffer_id_;
 
+    /// GL Shader program ID
+    int shader_id_;
+
     /// JS-side WebGL display manager
     Napi::ObjectReference disp_mgr_;
 
@@ -66,6 +69,7 @@ private:
     float *getBuffer(const Napi::CallbackInfo& info, int bufid);
     void sendBuffer(const Napi::CallbackInfo& info, int bufid);
 
+    int createShader(const Napi::CallbackInfo& info);
 };
 
 }

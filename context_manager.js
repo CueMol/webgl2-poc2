@@ -54,9 +54,6 @@ function loadShader(gl) {
 
 class DrawEntry {
     constructor(gl, val, cal, nsize, nelems) {
-        this._vertexAttribLocation = val;
-        this._colorAttribLocation = cal;
-
         this._nsize = nsize;
         this._nelems = nelems;
 
@@ -70,10 +67,10 @@ class DrawEntry {
         // Prepare VBO
         this._vertexBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
-        gl.enableVertexAttribArray(this._vertexAttribLocation);
-        gl.enableVertexAttribArray(this._colorAttribLocation);
-        gl.vertexAttribPointer(this._vertexAttribLocation, VERTEX_SIZE, gl.FLOAT, false, STRIDE, POSITION_OFFSET);
-        gl.vertexAttribPointer(this._colorAttribLocation, COLOR_SIZE, gl.FLOAT, false, STRIDE, COLOR_OFFSET);
+        gl.enableVertexAttribArray(val);
+        gl.enableVertexAttribArray(cal);
+        gl.vertexAttribPointer(val, VERTEX_SIZE, gl.FLOAT, false, STRIDE, POSITION_OFFSET);
+        gl.vertexAttribPointer(cal, COLOR_SIZE, gl.FLOAT, false, STRIDE, COLOR_OFFSET);
         gl.bufferData(gl.ARRAY_BUFFER, this._buf, gl.STATIC_DRAW);
 
         gl.bindVertexArray(null);
@@ -82,12 +79,7 @@ class DrawEntry {
 
     draw(gl) {
         gl.bindVertexArray(this._vao);
-
-        // gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
-        // gl.vertexAttribPointer(this._vertexAttribLocation, VERTEX_SIZE, gl.FLOAT, false, STRIDE, POSITION_OFFSET);
-        // gl.vertexAttribPointer(this._colorAttribLocation, COLOR_SIZE, gl.FLOAT, false, STRIDE, COLOR_OFFSET);
         gl.drawArrays(gl.TRIANGLES, 0, this._nelems);
-
         gl.bindVertexArray(null);
     }
 }
@@ -98,6 +90,9 @@ module.exports = class Manager {
         this._dist = 100;
         this._new_draw_id = 0;
         this._draw_data = [];
+
+        this._new_prog_id = 0;
+        this._prog_data = [];
     }
     
     // Bind this manager to specific canvas
@@ -105,17 +100,60 @@ module.exports = class Manager {
     init(canvas) {
         this._canvas = canvas;
         this._context = canvas.getContext('webgl2');
+    }
 
+    // Create shader program
+    // Called from native side
+    createShader(vert_source, frag_source) {
+        console.log("vert_source:", vert_source);
+        console.log("frag_source:", frag_source);
         const gl = this._context;
-        this._program = loadShader(gl);
 
-        // Get attrib/unif loc from program object
-        const program = this._program;
+        const vertexShader = gl.createShader(gl.VERTEX_SHADER);
+        gl.shaderSource(vertexShader, vert_source);
+        gl.compileShader(vertexShader);
+    
+        const vShaderCompileStatus = gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS);
+        if(!vShaderCompileStatus) {
+            const info = gl.getShaderInfoLog(vertexShader);
+            console.log(info);
+            return -1;
+        }
+
+        const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+        gl.shaderSource(fragmentShader, frag_source);
+        gl.compileShader(fragmentShader);
+
+        const fShaderCompileStatus = gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS);
+        if(!fShaderCompileStatus) {
+            const info = gl.getShaderInfoLog(fragmentShader);
+            console.log(info);
+            return -1;
+        }
+
+        const program = gl.createProgram();
+        gl.attachShader(program, vertexShader);
+        gl.attachShader(program, fragmentShader);
+        gl.linkProgram(program);
+
+        const linkStatus = gl.getProgramParameter(program, gl.LINK_STATUS);
+        if(!linkStatus) {
+            const info = gl.getProgramInfoLog(program);
+            console.log(info);
+            return -1;
+        }
+
+        const new_id = this._new_prog_id
+        this._prog_data[new_id] = program;
+        this._new_prog_id ++;
+
         this._vertexAttribLocation = gl.getAttribLocation(program, 'vertexPosition');
         this._colorAttribLocation  = gl.getAttribLocation(program, 'color');
         this._modelLocation = gl.getUniformLocation(program, 'model');
         this._viewLocation = gl.getUniformLocation(program, 'view');
         this._projectionLocation = gl.getUniformLocation(program, 'projection');
+
+        return new_id;
     }
 
     // Create new WebGL buffer
@@ -165,7 +203,6 @@ module.exports = class Manager {
     }
 
     // Draw the scene
-    // called from JS side
     displayAll() {
         const canvas = this._canvas;
         const gl = this._context;
@@ -175,19 +212,14 @@ module.exports = class Manager {
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-        gl.useProgram(this._program);
+        // gl.useProgram(this._program);
+        gl.useProgram(this._prog_data[0]);
 
         this.setUpModelMat(this._radian);
         let cx = canvas.width;
         let cy = canvas.height;
         gl.viewport(0, 0, cx, cy);
         this.setUpProjMat(cx, cy);
-
-        // gl.enableVertexAttribArray(this._vertexAttribLocation);
-        // gl.enableVertexAttribArray(this._colorAttribLocation);
-        // gl.vertexAttribPointer(this._vertexAttribLocation, VERTEX_SIZE, gl.FLOAT, false, STRIDE, POSITION_OFFSET);
-        // gl.vertexAttribPointer(this._colorAttribLocation, COLOR_SIZE, gl.FLOAT, false, STRIDE, COLOR_OFFSET);
-        // gl.drawArrays(gl.TRIANGLES, 0, this._num_elems);
 
         this._draw_data.forEach((value) => {
             if (value !==null) {
