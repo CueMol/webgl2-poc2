@@ -1,5 +1,5 @@
 console.log("Initializing...");
-
+const gfx_render = require("bindings")("gfx_render");
 const WebGLRender = require('./webgl_native_render');
 let webgl = new WebGLRender();
 
@@ -31,6 +31,11 @@ let fpsElem, canvas;
 window.addEventListener("load", () => {
     console.log("onLoad() called!!");
 
+    // gfx_render.initApp();
+    gfx_render.AppMain.init();
+    app = gfx_render.AppMain.getInstance();
+    console.log("app: ", app.toString());
+    
     let canvas = document.getElementById('canvas_area');
     // let id = mgr.registerCanvas(canvas);
     // console.log("register canvas id:", canvas.getAttribute("mgr_idx"));

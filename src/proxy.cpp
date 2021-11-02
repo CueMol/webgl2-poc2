@@ -21,6 +21,8 @@ Napi::Object Proxy::Init(Napi::Env env, Napi::Object exports) {
     return exports;
 }
 
+//////////
+
 Proxy::Proxy(const Napi::CallbackInfo& info)
     : Napi::ObjectWrap<Proxy>(info)
 {
@@ -28,8 +30,6 @@ Proxy::Proxy(const Napi::CallbackInfo& info)
     vert_buf_.setAttrInfo(0, "vertexPosition", 3, gfx::FLOAT32, offsetof(DrawElem, x));
     vert_buf_.setAttrInfo(1, "color", 4, gfx::FLOAT32, offsetof(DrawElem, r));
 }
-
-//////////
 
 Napi::Value Proxy::SetManager(const Napi::CallbackInfo& info)
 {

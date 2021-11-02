@@ -1,11 +1,14 @@
 #version 300 es
+//
 
 in vec3 vertexPosition;
 in vec4 color;
 
-uniform mat4 model;
-// uniform mat4 view;
-uniform mat4 projection;
+layout (std140) uniform mvp_matrix {
+    mat4 model;
+    // uniform mat4 view;
+    mat4 projection;
+};
 
 out vec4 vColor;
 

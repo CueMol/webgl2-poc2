@@ -24,7 +24,9 @@ include_directories(${CMAKE_JS_INC})
 # Declare the location of the source files
 set (SOURCE_FILES
   src/gfx_render_addon.cpp
-  src/proxy.cpp)
+  src/proxy.cpp
+  src/app.cpp
+  )
 
 # This line will tell CMake that we're building a shared library
 # from the above source files

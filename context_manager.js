@@ -11,47 +11,6 @@ const COLOR_OFFSET = VERTEX_SIZE * Float32Array.BYTES_PER_ELEMENT;
 
 const radius = 100;
 
-function loadShader(gl) {
-    let vertexShaderSource = fs.readFileSync(path.resolve(__dirname, 'shaders/vertex_shader.glsl'));
-
-    // console.log("rawdata", vertexShaderSource);
-    
-    const vertexShader = gl.createShader(gl.VERTEX_SHADER);
-    gl.shaderSource(vertexShader, vertexShaderSource);
-    gl.compileShader(vertexShader);
-    
-    const vShaderCompileStatus = gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS);
-    if(!vShaderCompileStatus) {
-        const info = gl.getShaderInfoLog(vertexShader);
-        console.log(info);
-    }
-
-    let fragmentShaderSource = fs.readFileSync(path.resolve(__dirname, 'shaders/fragment_shader.glsl'));
-    const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
-    gl.shaderSource(fragmentShader, fragmentShaderSource);
-    gl.compileShader(fragmentShader);
-
-    const fShaderCompileStatus = gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS);
-    if(!fShaderCompileStatus) {
-        const info = gl.getShaderInfoLog(fragmentShader);
-        console.log(info);
-    }
-
-    const program = gl.createProgram();
-    gl.attachShader(program, vertexShader);
-    gl.attachShader(program, fragmentShader);
-    gl.linkProgram(program);
-
-    const linkStatus = gl.getProgramParameter(program, gl.LINK_STATUS);
-    if(!linkStatus) {
-        const info = gl.getProgramInfoLog(program);
-        console.log(info);
-    }
-
-    return program;
-}
-
-
 class AttrInfo {
     constructor(iloc, nelems, itype, ipos) {
         this.iloc = iloc;
@@ -102,6 +61,10 @@ module.exports = class Manager {
 
         this._new_prog_id = 0;
         this._prog_data = [];
+
+        // for UBO
+        this._mvp_mat_loc = 0;
+        this._mvp_mat_array = new Float32Array(4*4*2);
     }
     
     // Bind this manager to specific canvas
@@ -109,6 +72,7 @@ module.exports = class Manager {
     init(canvas) {
         this._canvas = canvas;
         this._context = canvas.getContext('webgl2');
+
     }
 
     // Create shader program
@@ -158,9 +122,10 @@ module.exports = class Manager {
 
         this._vertexAttribLocation = gl.getAttribLocation(program, 'vertexPosition');
         this._colorAttribLocation  = gl.getAttribLocation(program, 'color');
-        this._modelLocation = gl.getUniformLocation(program, 'model');
-        this._viewLocation = gl.getUniformLocation(program, 'view');
-        this._projectionLocation = gl.getUniformLocation(program, 'projection');
+
+        // Setup UBO
+        let mvp_mat_index = gl.getUniformBlockIndex(program, 'mvp_matrix');
+        gl.uniformBlockBinding(program, mvp_mat_index, this._mvp_mat_loc);
 
         return new_id;
     }
@@ -190,6 +155,17 @@ module.exports = class Manager {
 
         // console.log("new_id=", new_id);
         // console.log("buf=", this._draw_data[id]._buf);
+
+        // Create UBO
+        // TODO: move to another method elsewhere
+        let matrix_ubo = gl.createBuffer();
+        gl.bindBuffer(gl.UNIFORM_BUFFER, matrix_ubo);
+        gl.bufferData(gl.UNIFORM_BUFFER, this._mvp_mat_array, gl.DYNAMIC_DRAW);
+        gl.bindBufferBase(gl.UNIFORM_BUFFER, this._mvp_mat_loc, matrix_ubo);
+        gl.bindBuffer(gl.UNIFORM_BUFFER, null);
+
+        this._mat_ubo = matrix_ubo;
+        
         return new_id;
     }
 
@@ -239,6 +215,11 @@ module.exports = class Manager {
         gl.viewport(0, 0, cx, cy);
         this.setUpProjMat(cx, cy);
 
+        // transfer UBO
+        gl.bindBuffer(gl.UNIFORM_BUFFER, this._mat_ubo);
+        gl.bufferSubData(gl.UNIFORM_BUFFER, 0, this._mvp_mat_array);
+        gl.bindBuffer(gl.UNIFORM_BUFFER, null);
+
         this._draw_data.forEach((value) => {
             if (value !==null) {
                 value.draw(gl);
@@ -261,8 +242,8 @@ module.exports = class Manager {
         glmat.mat4.rotateY(model, model, radian);
 
         // glmat.mat4.translate(model, model, [0, 0, 0]);
-
-        gl.uniformMatrix4fv(this._modelLocation, false, model);
+        // gl.uniformMatrix4fv(this._modelLocation, false, model);
+        this._mvp_mat_array.set(model, 0);
     }
 
     setUpProjMat(cx, cy) {
@@ -276,7 +257,8 @@ module.exports = class Manager {
         // gl.viewport(0, 0, cx, cy);
         glmat.mat4.ortho(projection, -vw*fasp, vw*fasp,
                          -vw, vw, slabnear, slabfar);        
-        gl.uniformMatrix4fv(this._projectionLocation, false, projection);
+        // gl.uniformMatrix4fv(this._projectionLocation, false, projection);
+        this._mvp_mat_array.set(projection, 4*4);
     }
 
 }
