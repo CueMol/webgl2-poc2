@@ -179,6 +179,21 @@ Napi::Value Wrapper::lvarToNapiValue(Napi::Env env, qlib::LVariant &variant)
             // MB_DPRINTLN("LVar: string(%s)", str.c_str());
             return Napi::String::New(env, variant.getStringValue().c_str());
         }
+        case qlib::LVariant::LT_OBJECT: {
+            auto pObj = createWrapper(env, variant.getObjectPtr());
+            // At this point, the ownership of value is passed to PyObject
+            //  (forget() avoids deleting the ptr transferred to PyObject)
+            variant.forget();
+            return pObj;
+        }
+        case qlib::LVariant::LT_ARRAY: {
+            // TODO: impl
+            break;
+        }
+        case qlib::LVariant::LT_DICT: {
+            // TODO: impl
+            break;
+        }
         default:
             break;
     }
@@ -193,6 +208,11 @@ Napi::Value Wrapper::lvarToNapiValue(Napi::Env env, qlib::LVariant &variant)
 bool Wrapper::napiValueToLVar(Napi::Env env, Napi::Value value, qlib::LVariant &rvar)
 {
     try {
+        // null
+        if (value.IsNull() || value.IsUndefined()) {
+            rvar.setNull();
+            return true;
+        }
         // boolean
         if (value.IsBoolean()) {
             rvar.setBoolValue(bool(value.ToBoolean()));
@@ -208,10 +228,47 @@ bool Wrapper::napiValueToLVar(Napi::Env env, Napi::Value value, qlib::LVariant &
             rvar.setStringValue(value.ToString().Utf8Value().c_str());
             return true;
         }
+        // function (callable)
+        if (value.IsFunction()) {
+            // TODO: impl
+            printf("Napi::Value function not supported\n");
+            return false;
+        }
+        // array
+        if (value.IsArray()) {
+            // TODO: impl
+            printf("Napi::Value array not supported\n");
+            return false;
+        }
+        // object
+        if (value.IsObject()) {
+            // try to get wrapped scrobj
+            auto obj = value.ToObject();
+            // TODO: use napi_unwrap directly to aviod throw
+            Wrapper *pWrapper = Wrapper::Unwrap(obj);
+            if (!pWrapper) {
+                printf("Napi::Object not wrapper object\n");
+                return false;
+            }
+
+            auto pScrObj = pWrapper->getWrapped();
+            if (!pScrObj) {
+                printf("Null wrapped object\n");
+                return false;
+            }
+            if (pScrObj) {
+                // pobj is owned by the interpreter (?)
+                // (variant share the ptr and won't have the ownership!!)
+                rvar.shareObjectPtr(pScrObj);
+                return true;
+            }
+        }
     } catch (...) {
+        printf("Unknown exception\n");
         return false;
     }
 
+    printf("Unsupported value type\n");
     return false;
 }
 

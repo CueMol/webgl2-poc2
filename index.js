@@ -13,6 +13,7 @@ console.log("Vector:", xx.toString());
 console.log("getClassName:", xx.getClassName());
 console.log("getAbiClassName:", xx.getAbiClassName());
 xx.setProp("x", 0.123);
+// xx.setProp("x", () => { return 1.234});
 console.log("getProp:", xx.getProp("x"));
 
 const electron = require("electron");
