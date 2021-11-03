@@ -3,3 +3,5 @@
 *_wrap.hpp
 *_loader.cpp
 *.log
+build
+node_modules

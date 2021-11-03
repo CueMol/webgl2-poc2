@@ -3,6 +3,9 @@ const gfx_render = require("bindings")("gfx_render");
 const WebGLRender = require('./webgl_native_render');
 let webgl = new WebGLRender();
 
+const cuemol = require("bindings")("node_jsbr");
+console.log("cuemol.hello():", cuemol.hello());
+
 const drawCanvas = () => {
     let placeholder = document.getElementById('placeholder');
     let rect = placeholder.getBoundingClientRect();
