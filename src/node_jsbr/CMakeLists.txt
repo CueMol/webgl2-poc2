@@ -24,6 +24,7 @@ include_directories(
 # Normal C++ source files
 SET(NODE_JSBR_SRCS
   init_cuemol.cpp
+  wrapper.cpp
   )
 
 if (WIN32)

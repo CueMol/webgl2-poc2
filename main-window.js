@@ -1,10 +1,13 @@
 console.log("Initializing...");
-const gfx_render = require("bindings")("gfx_render");
-const WebGLRender = require('./webgl_native_render');
-let webgl = new WebGLRender();
+// const gfx_render = require("bindings")("gfx_render");
+// const WebGLRender = require('./webgl_native_render');
+// let webgl = new WebGLRender();
 
 const cuemol = require("bindings")("node_jsbr");
 console.log("cuemol.hello():", cuemol.hello());
+cuemol.initCueMol();
+let xx = cuemol.getAllClassNamesJSON();
+console.log("cuemol.classes:", xx);
 
 const drawCanvas = () => {
     let placeholder = document.getElementById('placeholder');
@@ -18,7 +21,7 @@ const drawCanvas = () => {
     canvas.width = w;
     canvas.height = h;
     
-    webgl.render(canvas);
+    // webgl.render(canvas);
 }
 
 const resizeObserver = new ResizeObserver(entries => {
@@ -35,9 +38,9 @@ window.addEventListener("load", () => {
     console.log("onLoad() called!!");
 
     // gfx_render.initApp();
-    gfx_render.AppMain.init();
-    app = gfx_render.AppMain.getInstance();
-    console.log("app: ", app.toString());
+    // gfx_render.AppMain.init();
+    // app = gfx_render.AppMain.getInstance();
+    // console.log("app: ", app.toString());
     
     let canvas = document.getElementById('canvas_area');
     // let id = mgr.registerCanvas(canvas);
@@ -59,8 +62,8 @@ window.addEventListener("load", () => {
 
     resizeObserver.observe(document.getElementById("placeholder"));
 
-    webgl.init(canvas);
-    drawCanvas();
+    // webgl.init(canvas);
+    // drawCanvas();
 
     fpsElem = document.getElementById('fps');
 });
@@ -74,8 +77,8 @@ let timer_update_canvas = (timestamp) => {
     const fps = 1 / deltaTime;
     fpsElem.textContent = fps.toFixed(1);
 
-    webgl.render(canvas);
-    window.requestAnimationFrame(timer_update_canvas);
+    // webgl.render(canvas);
+    // window.requestAnimationFrame(timer_update_canvas);
 }
 
 window.requestAnimationFrame(timer_update_canvas);

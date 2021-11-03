@@ -31,11 +31,11 @@ namespace qlib {
   class LMsgLogImpl
   {
   public:
-    LString m_filepath;
-    FILE *m_fp;
-    LLogEventCaster m_evcaster;
-    LString m_accumMsg;
-    bool m_bAccumMsg;
+      LString m_filepath;
+      FILE *m_fp;
+      LLogEventCaster m_evcaster;
+      LString m_accumMsg;
+      bool m_bAccumMsg;
   };
 }
 
@@ -43,10 +43,12 @@ using namespace qlib;
 
 
 LMsgLog::LMsgLog()
-     : m_pImpl( MB_NEW LMsgLogImpl() )
+    : m_pImpl( new LMsgLogImpl() )
 {
-  resetOutput();
-  m_pImpl->m_bAccumMsg = true;
+    // printf("LMsgLog::LMsgLog()\n");
+    resetOutput();
+    m_pImpl->m_bAccumMsg = true;
+    // printf("LMsgLog::LMsgLog() OK\n");
 }
 
 void LMsgLog::resetOutput()
@@ -71,13 +73,13 @@ void LMsgLog::resetOutput()
 LMsgLog::~LMsgLog()
 {
   delete m_pImpl;
-  //if (m_pStream!=NULL)
-  //delete m_pStream;
 }
 
 void LMsgLog::init()
 {
-  s_pLog = MB_NEW LMsgLog();
+    // printf("void LMsgLog::init\n");
+    s_pLog = MB_NEW LMsgLog();
+    // printf("void LMsgLog::init OK\n");
 }
 
 void LMsgLog::fini()
@@ -121,49 +123,19 @@ void LMsgLog::setFileRedirPath(const LString &path)
 
 LString LMsgLog::getFileRedirPath() const
 {
-  return m_pImpl->m_filepath;
+    return m_pImpl->m_filepath;
 }
 
 int LMsgLog::addListener(LLogEventListener *plsn)
 {
-  return m_pImpl->m_evcaster.add(plsn);
-}
-/*
-namespace {
-  class ScrLogEvtLsnr : public LLogEventListener
-    {
-    public:
-      LSCBPtr m_pCb;
-      virtual void logAppended(LLogEvent &ev) {
-        if (ev.getType()>LMsgLog::DL_WARN) return;
-
-        LVarArgs args(3);
-        args.at(0).setStringValue(ev.getMessage());
-        args.at(1).setIntValue(ev.getType());
-        args.at(2).setBoolValue(ev.isNL());
-        m_pCb->invoke(args);
-      }
-      
-    };
+    return 0;
+    // return m_pImpl->m_evcaster.add(plsn);
 }
 
-int LMsgLog::addListener(LSCBPtr scb)
-{
-  ScrLogEvtLsnr *pLn = MB_NEW ScrLogEvtLsnr();
-  pLn->m_pCb = scb; // .get();
-  return m_pImpl->m_evcaster.add(pLn);
-}
-*/
 bool LMsgLog::removeListener(int nid)
 {
-  if (m_pImpl->m_evcaster.remove(nid)==NULL)
-    return false;
-  /*
-  ScrLogEvtLsnr *plsn = dynamic_cast<ScrLogEvtLsnr *>(m_pImpl->m_evcaster.remove(nid));
-  if (plsn==NULL)
-    return false;
-  delete plsn;*/
-
+  // if (m_pImpl->m_evcaster.remove(nid)==NULL)
+  //   return false;
   return true;
 }
 
@@ -210,34 +182,4 @@ void LMsgLog::removeAccumMsg()
   m_pImpl->m_accumMsg = "";
   m_pImpl->m_bAccumMsg = false;
 }
-
-//////////////////////////////////////////////////
-
-#if 0
-StdLogStream::StdLogStream(bool bStdErr)
-{
-  if (bStdErr)
-    m_fp = stderr;
-  else
-    m_fp = stdout;
-}
-
-void StdLogStream::writeln(const char *msg)
-{
-  if (m_fp!=NULL) {
-    fputs(msg, m_fp);
-    fputc('\n', m_fp);
-    fflush(m_fp);
-  }
-}
-
-void StdLogStream::write(const char *msg)
-{
-  if (m_fp!=NULL) {
-    fputs(msg, m_fp);
-    fflush(m_fp);
-  }
-}
-
-#endif
 

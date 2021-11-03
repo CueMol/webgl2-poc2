@@ -9,9 +9,10 @@
 #include "qlib.hpp"
 #include "EventCaster.hpp"
 
-#ifdef HAVE_BOOST_THREAD
-#  include <boost/thread.hpp>
-#endif  
+// #ifdef HAVE_BOOST_THREAD
+// #include <boost/thread.hpp>
+// #endif  
+#include <thread>
 
 namespace qlib {
 
@@ -24,8 +25,8 @@ namespace qlib {
   class LMthrEventCaster : public LEventCaster<_EvntType, _EvCallBkType>
   {
   private:
-    mutable boost::mutex m_mlsnr;
-    mutable boost::mutex m_mlck;
+      // mutable boost::mutex m_mlck;
+      mutable std::mutex m_mlck;
 
   public:
     typedef LEventCaster<_EvntType, _EvCallBkType> super_t;
@@ -43,79 +44,90 @@ namespace qlib {
     // Lock
 
     void lock() {
-      boost::mutex::scoped_lock lk(m_mlck);
-      super_t::lock();
+        // boost::mutex::scoped_lock lk(m_mlck);
+        std::scoped_lock lk(m_mlck);
+        super_t::lock();
     }
 
     void unlock() {
-      boost::mutex::scoped_lock lk(m_mlck);
-      super_t::unlock();
+        //boost::mutex::scoped_lock lk(m_mlck);
+        std::scoped_lock lk(m_mlck);
+        super_t::unlock();
     }
 
     bool isLocked() const {
-      boost::mutex::scoped_try_lock lk(m_mlck);
-      if (!lk) return true;
-      return super_t::isLocked();
+        //boost::mutex::scoped_try_lock lk(m_mlck);
+        std::unique_lock lk(m_mlck, std::try_to_lock);
+        if (!lk) return true;
+        return super_t::isLocked();
     }
 
     /////////////////////////////////////////
     // Event Listener management
 
     iterator find(_EvCallBkType *pCB) {
-      boost::mutex::scoped_lock lk(m_mlck);
-      return super_t::find(pCB);
+        //boost::mutex::scoped_lock lk(m_mlck);
+        std::scoped_lock lk(m_mlck);
+        return super_t::find(pCB);
     }
 
     iterator find(int nid) {
-      boost::mutex::scoped_lock lk(m_mlck);
-      return super_t::find(nid);
+        //      boost::mutex::scoped_lock lk(m_mlck);
+        std::scoped_lock lk(m_mlck);
+        return super_t::find(nid);
     }
 
     bool isRegistered(_EvCallBkType *pCB) const {
-      boost::mutex::scoped_lock lk(m_mlck);
-      return super_t::isRegistered(pCB);
+        //      boost::mutex::scoped_lock lk(m_mlck);
+        std::scoped_lock lk(m_mlck);
+        return super_t::isRegistered(pCB);
     }
 
     bool isRegistered(int nid) const {
-      boost::mutex::scoped_lock lk(m_mlck);
-      return super_t::isRegistered(nid);
+        //      boost::mutex::scoped_lock lk(m_mlck);
+        std::scoped_lock lk(m_mlck);
+        return super_t::isRegistered(nid);
     }
 
     int add(_EvCallBkType *pCB) {
-      boost::mutex::scoped_lock lk(m_mlck);
-      return super_t::add(pCB);
+        //      boost::mutex::scoped_lock lk(m_mlck);
+        std::scoped_lock lk(m_mlck);
+        return super_t::add(pCB);
     }
 
     bool remove(_EvCallBkType *pCB) {
-      boost::mutex::scoped_lock lk(m_mlck);
-      return super_t::remove(pCB);
+        //      boost::mutex::scoped_lock lk(m_mlck);
+        std::scoped_lock lk(m_mlck);
+        return super_t::remove(pCB);
     }
 
     _EvCallBkType *remove(int nid) {
-      boost::mutex::scoped_lock lk(m_mlck);
-      return super_t::remove(nid);
+        //      boost::mutex::scoped_lock lk(m_mlck);
+        std::scoped_lock lk(m_mlck);
+        return super_t::remove(nid);
     }
 
     void clear() {
-      boost::mutex::scoped_lock lk(m_mlck);
-      super_t::clear();
+        // boost::mutex::scoped_lock lk(m_mlck);
+        std::scoped_lock lk(m_mlck);
+        super_t::clear();
     }
 
     /////////////////////////////////////////
     // Event broadcasting methods
 
     bool lockedFire(_EvntType &ev) {
-      //boost::thread::id mthid = EventManager::getMainThrID();
-      EventManager *pMgr = EventManager::getInstance();
-      if (!pMgr->isMainThread()) {
-	pMgr->delegateEventFire(&ev, this);
-	return true;
-      }
-
-      {
-	boost::mutex::scoped_lock lk(m_mlck);
-	return super_t::lockedFire(ev);
-      }
+        EventManager *pMgr = EventManager::getInstance();
+        if (!pMgr->isMainThread()) {
+            pMgr->delegateEventFire(&ev, this);
+            return true;
+        }
+        
+        {
+            // boost::mutex::scoped_lock lk(m_mlck);
+            std::scoped_lock lk(m_mlck);
+            return super_t::lockedFire(ev);
+        }
     }
 
   };

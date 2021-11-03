@@ -10,7 +10,8 @@
 #include "LExceptions.hpp"
 
 #ifdef HAVE_BOOST_THREAD
-#  include <boost/thread.hpp>
+//#  include <boost/thread.hpp>
+#include <thread>
 #endif  
 
 namespace qlib {
@@ -18,8 +19,10 @@ namespace qlib {
 #ifdef HAVE_BOOST_THREAD
   struct EMThreadImpl
   {
-    boost::thread::id m_mainthr;
-    mutable boost::mutex m_mu;
+      // boost::thread::id m_mainthr;
+      std::thread::id m_mainthr;
+      // mutable boost::mutex m_mu;
+       mutable std::mutex m_mu;
   };
 #else
   struct EMThreadImpl
@@ -39,7 +42,8 @@ EventManager::EventManager()
   m_pImpl = NULL;
   m_pthr = new EMThreadImpl();
 #ifdef HAVE_BOOST_THREAD
-  m_pthr->m_mainthr = boost::this_thread::get_id();
+  // m_pthr->m_mainthr = boost::this_thread::get_id();
+  m_pthr->m_mainthr = std::this_thread::get_id();
 #endif  
 }
 
@@ -51,21 +55,24 @@ EventManager::~EventManager()
 bool EventManager::isMainThread() const
 {
 #ifdef HAVE_BOOST_THREAD
-  if (m_pthr->m_mainthr != boost::this_thread::get_id())
-    return false;
+    // if (m_pthr->m_mainthr != boost::this_thread::get_id())
+    if (m_pthr->m_mainthr != std::this_thread::get_id())
+        return false;
 #endif  
   return true;
 }
 
 void EventManager::delegateEventFire(const LEvent *pEvent, LEventCasterBase *pCaster)
 {
-  boost::mutex::scoped_lock lk(m_pthr->m_mu);
-  m_pending.push_back(tuple_t(static_cast<LEvent *>(pEvent->clone()), pCaster));
+    // boost::mutex::scoped_lock lk(m_pthr->m_mu);
+    std::scoped_lock lk(m_pthr->m_mu);
+    m_pending.push_back(tuple_t(static_cast<LEvent *>(pEvent->clone()), pCaster));
 }
 
 void EventManager::messageLoop()
 {
-  boost::mutex::scoped_lock lk(m_pthr->m_mu);
+    // boost::mutex::scoped_lock lk(m_pthr->m_mu);
+    std::scoped_lock lk(m_pthr->m_mu);
 
   while (m_pending.size()>0) {
     tuple_t tup = m_pending.front();

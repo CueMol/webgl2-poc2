@@ -1,6 +1,20 @@
 
 'use strict';
 
+const cuemol = require("bindings")("node_jsbr");
+cuemol.initCueMol();
+let xx = cuemol.getAllClassNamesJSON();
+console.log("cuemol.getAllClassNamesJSON()", xx);
+xx = cuemol.getService("ProcessManager");
+console.log("ProcessManager:", xx.toString());
+
+xx = cuemol.createObj("Vector");
+console.log("Vector:", xx.toString());
+console.log("getClassName:", xx.getClassName());
+console.log("getAbiClassName:", xx.getAbiClassName());
+xx.setProp("x", 0.123);
+console.log("getProp:", xx.getProp("x"));
+
 const electron = require("electron");
 
 const app = electron.app;
@@ -38,7 +52,7 @@ const createWindow = () => {
 	    mainWindow = null;
     });
 
-    mainWindow.webContents.openDevTools();
+    // mainWindow.webContents.openDevTools();
 }
 
 app.whenReady().then(createWindow);

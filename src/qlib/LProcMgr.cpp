@@ -13,7 +13,8 @@
 #include "FileStream.hpp"
 #include "PrintStream.hpp"
 
-#include <boost/thread.hpp>
+// #include <boost/thread.hpp>
+#include <thread>
 
 namespace qlib {
 
@@ -25,7 +26,8 @@ namespace qlib {
     int m_nExitCode;
 
     /// lock obj for m_sbuf access
-    mutable boost::mutex m_lock;
+      // mutable boost::mutex m_lock;
+      mutable std::mutex m_lock;
   };
   
   SINGLETON_BASE_IMPL(LProcMgr);
@@ -190,7 +192,8 @@ LString LProcMgr::getResultOutput(int id)
       LString res;
       {
 	ProcInThread *pThr = pEnt->m_pThr;
-	boost::mutex::scoped_lock lck(pThr->m_lock);
+	// boost::mutex::scoped_lock lck(pThr->m_lock);
+    std::scoped_lock lck(pThr->m_lock);
 	res = pThr->m_sbuf;
 	pThr->m_sbuf = LString();
       }

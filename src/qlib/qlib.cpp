@@ -39,23 +39,23 @@ static int s_nInitCount = 0;
 
 bool qlib::init()
 {
-  bool res;
-
-  if (s_nInitCount==0) {
-    LString::initLocale();
-    LMsgLog::init();
-    EventManager::init();
-    ObjectManager::init();
-    ClassRegistry::init();
-    PerfMeasManager::init();
-    qlib_regClasses();
-    res = true;
-
-#if (BOOST_FILESYSTEM_VERSION>2)
-    std::locale global_loc = std::locale();
-    std::locale loc(global_loc, new boost::filesystem::detail::utf8_codecvt_facet);
-    boost::filesystem::path::imbue(loc);
-#endif
+    bool res;
+    
+    if (s_nInitCount==0) {
+        LString::initLocale();
+        LMsgLog::init();
+        EventManager::init();
+        ObjectManager::init();
+        ClassRegistry::init();
+        PerfMeasManager::init();
+        qlib_regClasses();
+        res = true;
+        
+// #if (BOOST_FILESYSTEM_VERSION>2)
+//     std::locale global_loc = std::locale();
+//     std::locale loc(global_loc, new boost::filesystem::detail::utf8_codecvt_facet);
+//     boost::filesystem::path::imbue(loc);
+// #endif
 
   }
   else
