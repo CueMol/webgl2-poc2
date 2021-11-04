@@ -31,7 +31,7 @@ set (SOURCE_FILES
 # This line will tell CMake that we're building a shared library
 # from the above source files
 # named after the project's name
-add_library(${PROJECT_NAME} SHARED ${SOURCE_FILES})
+add_library(${PROJECT_NAME} SHARED ${SOURCE_FILES} ${CMAKE_JS_SRC})
 
 # This line will give our library file a .node extension without any "lib" prefix
 set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "" SUFFIX ".node")
