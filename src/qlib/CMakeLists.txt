@@ -1,6 +1,6 @@
 
 SET(QLIB_LINK_LIBRARIES
-#  expat
+  expat
 #  qmzlib
   pcre
   Boost::filesystem
@@ -15,7 +15,7 @@ include_directories(
   ${Boost_INCLUDE_DIRS}
   )
 
-SET(QLIB_XML_SRC
+SET(QLIB_XML_SRCS
   XmlInStream.cpp
   ExpatInStream.cpp
   LDOM2Stream.cpp
@@ -23,7 +23,7 @@ SET(QLIB_XML_SRC
   LObjStream3.cpp
 )
 
-SET(QLIB_GZ_SRC
+SET(QLIB_GZ_SRCS
   GzipStream.cpp
   )
 
@@ -104,7 +104,7 @@ if (WIN32)
   add_definitions(-DQLIB_EXPORTS=1)
 endif()
 
-add_library(qlib SHARED ${QLIB_SRCS} ${MCWG_HEADERS})
+add_library(qlib SHARED ${QLIB_SRCS} ${QLIB_XML_SRCS} ${MCWG_HEADERS})
 # add_library(qlib SHARED ${QLIB_SRCS})
 target_link_libraries(qlib PRIVATE ${QLIB_LINK_LIBRARIES})
 

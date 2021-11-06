@@ -19,7 +19,7 @@ using namespace gfx;
 using qlib::LChar;
 using qlib::LString;
 
-#include "color_parser.h"
+#include "color_parser.hpp"
 
 
 #undef YY_INPUT

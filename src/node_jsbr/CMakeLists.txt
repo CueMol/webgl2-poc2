@@ -34,11 +34,10 @@ endif()
 
 SET(NODE_JSBR_LINK_LIBRARIES
   pcre
-  # expat
+  expat
   # qmpng
   # qmzlib
-  qlib
-  gfx
+  qlib gfx qsys
   Boost::filesystem
   ${CMAKE_JS_LIB}
   )

@@ -89,13 +89,14 @@ include("mcwgen.cmake")
 
 # support libraries
 add_subdirectory(pcre)
-# add_subdirectory(expat)
+add_subdirectory(expat)
 # add_subdirectory(zlib)
 # add_subdirectory(libpng)
 
 # main components/modules
 add_subdirectory(qlib)
 add_subdirectory(gfx)
+add_subdirectory(qsys)
 
 add_subdirectory(node_jsbr)
 

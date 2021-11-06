@@ -1,13 +1,10 @@
 console.log("Initializing...");
-// const gfx_render = require("bindings")("gfx_render");
 // const WebGLRender = require('./webgl_native_render');
 // let webgl = new WebGLRender();
 
-const cuemol = require("bindings")("node_jsbr");
-console.log("cuemol.hello():", cuemol.hello());
-cuemol.initCueMol();
-let xx = cuemol.getAllClassNamesJSON();
-console.log("cuemol.classes:", xx);
+const CueMolMgr = require("./cuemol_system");
+let mgr = new CueMolMgr();
+mgr.test();
 
 const drawCanvas = () => {
     let placeholder = document.getElementById('placeholder');

@@ -10,6 +10,7 @@
 #include <qlib/LScriptable.hpp>
 #include <qlib/qlib.hpp>
 #include <gfx/gfx.hpp>
+#include <qsys/qsys.hpp>
 
 #include "wrapper.hpp"
 
@@ -40,12 +41,25 @@ Napi::Value initCueMol(const Napi::CallbackInfo &info)
     Napi::Env env = info.Env();
     if (g_bInitOK) return env.Null();
 
-    std::string config = "xxx";
+    if (info.Length() != 1) {
+        Napi::TypeError::New(env, "Wrong number of arguments")
+            .ThrowAsJavaScriptException();
+        return env.Null();
+    }
+
+    if (!info[0].IsString()) {
+        Napi::TypeError::New(env, "Wrong type of argument 0")
+            .ThrowAsJavaScriptException();
+        return env.Null();
+    }
+
+    auto config = info[0].As<Napi::String>().Utf8Value();
     printf("initCueMol(%s) called.\n", config.c_str());
 
     try {
         qlib::init();
         gfx::init();
+        qsys::init(config.c_str());
     } catch (const qlib::LException &e) {
         printf("XXXXX\n");
         // LOG_DPRINTLN("Init> Caught exception <%s>", typeid(e).name());
@@ -74,7 +88,7 @@ Napi::String getAllClassNamesJSON(const Napi::CallbackInfo &info)
     LString rstr = "[";
     bool ffirst = true;
     for (const LString &str : ls) {
-        MB_DPRINTLN("GACNJSON> class %s", str.c_str());
+        MB_DPRINTLN("class %s", str.c_str());
         if (!ffirst) rstr += ",";
         rstr += "\"" + str + "\"";
         ffirst = false;
