@@ -25,6 +25,7 @@ include_directories(
 SET(NODE_JSBR_SRCS
   init_cuemol.cpp
   wrapper.cpp
+  ${CMAKE_JS_SRC}
   )
 
 if (WIN32)

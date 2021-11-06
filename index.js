@@ -2,19 +2,41 @@
 'use strict';
 
 const cuemol = require("bindings")("node_jsbr");
+const wrapper_utils = require("./wrapper_utils");
+// const Vector = require("./build/javascript/wrappers/Vector.js");
+
 cuemol.initCueMol();
 let xx = cuemol.getAllClassNamesJSON();
 console.log("cuemol.getAllClassNamesJSON()", xx);
 xx = cuemol.getService("ProcessManager");
-console.log("ProcessManager:", xx.toString());
+let wxx = wrapper_utils.createWrapper(xx);
+// console.log("ProcessManager:", xx.toString());
+ console.log("ProcessManager:", wxx.toString());
 
 xx = cuemol.createObj("Vector");
 console.log("Vector:", xx.toString());
 console.log("getClassName:", xx.getClassName());
 console.log("getAbiClassName:", xx.getAbiClassName());
 xx.setProp("x", 0.123);
+xx.setProp("y", 1.23);
+xx.setProp("z", 12.3);
 // xx.setProp("x", () => { return 1.234});
 console.log("getProp:", xx.getProp("x"));
+console.log("length:", xx.invokeMethod("length"));
+let yy = xx.invokeMethod("scale", 10);
+console.log("scaled:", yy.getProp("strvalue"));
+
+//////////
+
+xx = wrapper_utils.createWrapper(cuemol.createObj("Vector"));
+console.log("Vector:", xx.toString());
+xx.x = 0.123
+xx.y = 1.23
+xx.z = 12.3
+console.log("length:", xx.length());
+yy = xx.scale(10);
+console.log("scaled:", yy.strvalue);
+
 
 const electron = require("electron");
 

@@ -35,6 +35,7 @@ public:
     Napi::Value getAbiClassName(const Napi::CallbackInfo &info);
     Napi::Value getProp(const Napi::CallbackInfo &info);
     Napi::Value setProp(const Napi::CallbackInfo &info);
+    Napi::Value invokeMethod(const Napi::CallbackInfo &info);
 
     Napi::Value lvarToNapiValue(Napi::Env env, qlib::LVariant &variant);
     bool napiValueToLVar(Napi::Env env, Napi::Value napi_val, qlib::LVariant &rvar);

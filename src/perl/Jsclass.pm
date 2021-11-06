@@ -6,6 +6,7 @@
 package Jsclass;
 
 use File::Basename;
+use File::Path 'mkpath';
 
 use strict;
 use Utils;
@@ -31,6 +32,9 @@ sub genJsWrapper($)
 
   if ($out_dir) {
     $out_fname = "$out_dir/${in_base}.js";
+    if (!-d $out_dir) {
+        mkpath($out_dir) or die "Cannot create dir $out_dir: $!";
+    }
   }
 
   print("Output JS file: $out_fname\n");
@@ -45,19 +49,15 @@ sub genJsWrapper($)
   print OUT "// Javascript wrapper class for $qifname\n";
   print OUT "//\n";
   print OUT "\n";
-  print OUT "var EXPORTED_SYMBOLS = [\"${js_clsname}\"];\n";
+  # print OUT "var EXPORTED_SYMBOLS = [\"${js_clsname}\"];\n";
   print OUT "\n";
-  print OUT "${js_clsname} = function ${qifname}_ctor(aWrapped, aCueMol)\n";
+  print OUT "${js_clsname} = function ${qifname}_ctor(aWrapped, aUtil)\n";
   print OUT "{\n";
   print OUT "  this._wrapped = aWrapped;\n";
-  print OUT "  this._cuemol = aCueMol;\n";
-#  print OUT "  if (arguments.length>0) {\n";
-#  print OUT "    this._wrapped = arguments[0];\n";
-#  print OUT "  }\n";
-#  print OUT "  else {\n";
-#  print OUT "    this._wrapped = utils.createObj(\"${qifname}\");\n";
-#  print OUT "  }\n";
+  print OUT "  this._util = aUtil;\n";
   print OUT "}\n";
+  print OUT "\n";
+  print OUT "module.exports.constructor = ${js_clsname};\n";
   print OUT "\n";
 
   genJsSupclsCodeImpl($js_clsname, $qifname);
@@ -146,7 +146,8 @@ sub genJsObjPropCode($$$)
 
   print OUT "${classnm}.prototype.__defineGetter__(\"$propnm\", function()\n";
   print OUT "{\n";
-  print OUT "  return this._cuemol.utils.convPolymObj(this._wrapped.getProp(\"$propnm\"));\n";
+  # print OUT "  return this._cuemol.utils.convPolymObj(this._wrapped.getProp(\"$propnm\"));\n";
+  print OUT "  return this._utils.createWrapper(this._wrapped.getProp(\"$propnm\"));\n";
   print OUT "});\n";
   print OUT "\n";
       
@@ -212,24 +213,27 @@ sub genJsInvokeCode($$)
       print OUT "  ";
     }
     
-    if (checkCallbackReg($mth)) {
-      print OUT "  this._wrapped.invokeWithCallback1(\"$nm\", arg_0)\n";
-      print OUT "  return rval;\n";
-      print OUT "};\n";
-      print OUT "\n";
-      next;
-    }
+    # if (checkCallbackReg($mth)) {
+    #   print OUT "  this._wrapped.invokeWithCallback1(\"$nm\", arg_0)\n";
+    #   print OUT "  return rval;\n";
+    #   print OUT "};\n";
+    #   print OUT "\n";
+    #   next;
+    # }
     
-    if ($nargs<6) {
-      print OUT "this._wrapped.invoke${nargs}(".makeMthArg($mth).")\n";
-    }
-    else {
-      print OUT "this._wrapped.invoke(".makeMthArg2($mth).")\n";
-    }
+    # if ($nargs<6) {
+    #   print OUT "this._wrapped.invoke${nargs}(".makeMthArg($mth).")\n";
+    # }
+    # else {
+    #   print OUT "this._wrapped.invoke(".makeMthArg2($mth).")\n";
+    # }
     
+    print OUT "this._wrapped.invokeMethod(".makeMthArg($mth).")\n";
+
     if ($rval_typename eq "object") {
       my $rettype_qif = $rettype->{"qif"};
-      print OUT "  return this._cuemol.utils.convPolymObj(rval);\n";
+      # print OUT "  return this._cuemol.utils.convPolymObj(rval);\n";
+      print OUT "  return this._utils.createWrapper(rval);\n";
     }
     elsif ($rval_typename eq "void") {
       # No return code
@@ -290,7 +294,7 @@ sub makeMthArg2($)
   my $args = $mth->{"args"};
   my $name = $mth->{"name"};
 
-  my @rval; # = ("\"$name\"");
+  my @rval;
 
   my $ind = 0;
   foreach my $arg (@{$args}) {

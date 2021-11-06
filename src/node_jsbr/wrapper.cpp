@@ -1,6 +1,7 @@
 #include "wrapper.hpp"
 
 #include <qlib/LScriptable.hpp>
+#include <qlib/LVarArgs.hpp>
 #include <qlib/LVariant.hpp>
 #include <qlib/qlib.hpp>
 
@@ -156,6 +157,81 @@ Napi::Value Wrapper::setProp(const Napi::CallbackInfo &info)
     return env.Null();
 }
 
+Napi::Value Wrapper::invokeMethod(const Napi::CallbackInfo &info)
+{
+    Napi::Env env = info.Env();
+
+    auto pScObj = getWrapped();
+    if (!pScObj) {
+        Napi::Error::New(env, "Wrapped obj is null").ThrowAsJavaScriptException();
+        return env.Null();
+    }
+
+    if (info.Length() < 1) {
+        Napi::TypeError::New(env, "invokeMethod called without method name")
+            .ThrowAsJavaScriptException();
+        return env.Null();
+    }
+
+    if (!info[0].IsString()) {
+        Napi::TypeError::New(env, "Wrong type of argument 0")
+            .ThrowAsJavaScriptException();
+        return env.Null();
+    }
+    auto methodname = info[0].As<Napi::String>().Utf8Value();
+
+    if (!pScObj->hasMethod(methodname)) {
+        auto msg = LString::format("InvokeMethod: method \"%s\") not found.",
+                                   methodname.c_str());
+        Napi::Error::New(env, msg.c_str()).ThrowAsJavaScriptException();
+        return env.Null();
+    }
+
+    // Convert argments
+    const size_t nargs = info.Length();
+    qlib::LVarArgs largs(nargs - 1);
+    size_t i;
+
+    for (i = 1; i < nargs; ++i) {
+        if (!Wrapper::napiValueToLVar(env, info[i], largs.at(i - 1))) {
+            auto msg = LString::format("call method %s: cannot convert arg %d",
+                                       methodname.c_str(), i);
+            Napi::Error::New(env, msg.c_str()).ThrowAsJavaScriptException();
+            return env.Null();
+        }
+    }
+
+    MB_DPRINTLN("invoke method %s nargs=%zu", methodname.c_str(), nargs);
+
+    // Invoke method
+
+    bool ok = false;
+    LString errmsg;
+
+    try {
+        ok = pScObj->invokeMethod(methodname, largs);
+        if (!ok) errmsg = LString::format("call method %s: failed", methodname.c_str());
+    } catch (qlib::LException &e) {
+        errmsg = LString::format("Exception occured in native method %s: %s",
+                                 methodname.c_str(), e.getMsg().c_str());
+    } catch (std::exception &e) {
+        errmsg = LString::format("Std::exception occured in native method %s: %s",
+                                 methodname.c_str(), e.what());
+    } catch (...) {
+        LOG_DPRINTLN("*********");
+        errmsg = LString::format("Unknown Exception occured in native method %s",
+                                 methodname.c_str());
+    }
+
+    if (!ok) {
+        Napi::Error::New(env, errmsg.c_str()).ThrowAsJavaScriptException();
+        return env.Null();
+    }
+
+    // Convert returned value
+    return lvarToNapiValue(env, largs.retval());
+}
+
 /// convert LVariant to Napi::Value
 Napi::Value Wrapper::lvarToNapiValue(Napi::Env env, qlib::LVariant &variant)
 {
@@ -280,7 +356,8 @@ Napi::Object Wrapper::Init(Napi::Env env, Napi::Object exports)
                      InstanceMethod<&Wrapper::getClassName>("getClassName"),
                      InstanceMethod<&Wrapper::getAbiClassName>("getAbiClassName"),
                      InstanceMethod<&Wrapper::getProp>("getProp"),
-                     InstanceMethod<&Wrapper::setProp>("setProp")});
+                     InstanceMethod<&Wrapper::setProp>("setProp"),
+                     InstanceMethod<&Wrapper::invokeMethod>("invokeMethod")});
 
     Napi::FunctionReference *ctor = new Napi::FunctionReference();
     *ctor = Napi::Persistent(func);
