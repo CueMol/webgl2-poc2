@@ -54,7 +54,7 @@ sub genJsWrapper($)
   print OUT "${js_clsname} = function ${qifname}_ctor(aWrapped, aUtil)\n";
   print OUT "{\n";
   print OUT "  this._wrapped = aWrapped;\n";
-  print OUT "  this._util = aUtil;\n";
+  print OUT "  this._utils = aUtil;\n";
   print OUT "}\n";
   print OUT "\n";
   print OUT "module.exports.constructor = ${js_clsname};\n";

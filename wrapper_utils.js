@@ -1,3 +1,5 @@
+const node_jsbr = require("bindings")("node_jsbr");
+
 let Utils = Object();
 
 const createWrapper = Utils.createWrapper = (native_obj) => {
@@ -12,3 +14,13 @@ const createWrapper = Utils.createWrapper = (native_obj) => {
 };
 
 module.exports.createWrapper = createWrapper;
+
+module.exports.createObj = (clsname) => {
+    let obj = node_jsbr.createObj(clsname);
+    return createWrapper(obj);
+};
+
+module.exports.getService = (clsname) => {
+    let obj = node_jsbr.getService(clsname);
+    return createWrapper(obj);
+};

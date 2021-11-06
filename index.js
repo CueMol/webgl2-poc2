@@ -28,14 +28,23 @@ console.log("scaled:", yy.getProp("strvalue"));
 
 //////////
 
-xx = wrapper_utils.createWrapper(cuemol.createObj("Vector"));
+xx = wrapper_utils.createObj("Vector");
+console.log("xx._utils:", xx._utils);
 console.log("Vector:", xx.toString());
 xx.x = 0.123
 xx.y = 1.23
 xx.z = 12.3
+console.log("xx._utils:", xx._utils);
 console.log("length:", xx.length());
+console.log("xx._utils:", xx._utils);
 yy = xx.scale(10);
-console.log("scaled:", yy.strvalue);
+console.log(`scaled: ${yy}`);
+
+//////////
+
+xx = wrapper_utils.createObj("Color");
+xx.setHSB(1, 1, 120);
+console.log(`color: ${xx}`);
 
 
 const electron = require("electron");

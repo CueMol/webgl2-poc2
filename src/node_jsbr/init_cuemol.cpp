@@ -9,6 +9,7 @@
 #include <qlib/LExceptions.hpp>
 #include <qlib/LScriptable.hpp>
 #include <qlib/qlib.hpp>
+#include <gfx/gfx.hpp>
 
 #include "wrapper.hpp"
 
@@ -44,6 +45,7 @@ Napi::Value initCueMol(const Napi::CallbackInfo &info)
 
     try {
         qlib::init();
+        gfx::init();
     } catch (const qlib::LException &e) {
         printf("XXXXX\n");
         // LOG_DPRINTLN("Init> Caught exception <%s>", typeid(e).name());
