@@ -5,7 +5,7 @@
 namespace qlib {
 class LScriptable;
 class LVariant;
-}
+}  // namespace qlib
 
 namespace node_jsbr {
 
@@ -13,24 +13,24 @@ class Wrapper : public Napi::ObjectWrap<Wrapper>
 {
 private:
     /// wrapped object
-    qlib::LScriptable* m_pWrapped;
+    qlib::LScriptable *m_pWrapped;
 
 public:
     using super_t = Napi::ObjectWrap<Wrapper>;
 
-    Wrapper(const Napi::CallbackInfo& info) : super_t(info) {}
+    Wrapper(const Napi::CallbackInfo &info) : super_t(info) {}
     ~Wrapper() = default;
 
-    qlib::LScriptable* getWrapped()
+    qlib::LScriptable *getWrapped()
     {
         return m_pWrapped;
     }
-    void setWrapped(qlib::LScriptable* pval)
+    void setWrapped(qlib::LScriptable *pval)
     {
         m_pWrapped = pval;
     }
 
-    Napi::Value toString(const Napi::CallbackInfo& info);
+    Napi::Value toString(const Napi::CallbackInfo &info);
     Napi::Value getClassName(const Napi::CallbackInfo &info);
     Napi::Value getAbiClassName(const Napi::CallbackInfo &info);
     Napi::Value getProp(const Napi::CallbackInfo &info);

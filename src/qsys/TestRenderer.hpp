@@ -46,9 +46,10 @@ namespace qsys {
 
     virtual void unloading() {}
 
-    virtual bool isHitTestSupported() const { return true; }
+    // virtual bool isHitTestSupported() const { return true; }
+    virtual bool isHitTestSupported() const { return false; }
     virtual void displayHit(DisplayContext *pdc);
-    virtual LString interpHit(const gfx::RawHitData &rhit);
+    // virtual LString interpHit(const gfx::RawHitData &rhit);
 
   };
 

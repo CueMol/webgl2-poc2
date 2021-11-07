@@ -35,6 +35,8 @@
 #include "command/LoadObjectCommand.qif"
 #include "command/CmdMgr.qif"
 
+#include "TestRenderer.qif"
+
 module qsys
 {
   init qsys::init();
@@ -73,7 +75,7 @@ module qsys
   CmdMgr;
 
   SceneExporter;
-
+  TestRenderer;
 // #if !defined(QM_BUILD_LW)
 //  ImgSceneExporter;
 //  PngSceneExporter;

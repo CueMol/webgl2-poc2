@@ -25,6 +25,8 @@ include_directories(
 SET(NODE_JSBR_SRCS
   init_cuemol.cpp
   wrapper.cpp
+  ElecView.cpp
+  ElecDisplayContext.cpp
   ${CMAKE_JS_SRC}
   )
 

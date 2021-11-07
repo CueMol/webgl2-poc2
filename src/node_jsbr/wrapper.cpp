@@ -320,7 +320,7 @@ bool Wrapper::napiValueToLVar(Napi::Env env, Napi::Value value, qlib::LVariant &
         if (value.IsObject()) {
             // try to get wrapped scrobj
             auto obj = value.ToObject();
-            // TODO: use napi_unwrap directly to aviod throw
+            // TODO: use napi_unwrap directly to aviod throw exception
             Wrapper *pWrapper = Wrapper::Unwrap(obj);
             if (!pWrapper) {
                 printf("Napi::Object not wrapper object\n");

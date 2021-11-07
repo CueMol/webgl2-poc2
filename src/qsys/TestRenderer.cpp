@@ -162,16 +162,16 @@ void TestRenderer::displayHit(DisplayContext *pdc)
   display(pdc);
 }
 
-LString TestRenderer::interpHit(const gfx::RawHitData &rhit)
-{
-  LString rval;
-  int nface;
-  if (rhit.getData(4, nface)) {
-    rval += LString::format("\"faceid\": %d,\n", nface);
-  }
-  rval += "\"objtype\": \"Test\",\n";
-  return rval;
-}
+// LString TestRenderer::interpHit(const gfx::RawHitData &rhit)
+// {
+//   LString rval;
+//   int nface;
+//   if (rhit.getData(4, nface)) {
+//     rval += LString::format("\"faceid\": %d,\n", nface);
+//   }
+//   rval += "\"objtype\": \"Test\",\n";
+//   return rval;
+// }
 
 Vector4D TestRenderer::getCenter() const
 {

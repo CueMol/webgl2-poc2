@@ -5,16 +5,18 @@
 
 #include <napi.h>
 
+#include <gfx/gfx.hpp>
 #include <qlib/ClassRegistry.hpp>
 #include <qlib/LExceptions.hpp>
 #include <qlib/LScriptable.hpp>
 #include <qlib/qlib.hpp>
-#include <gfx/gfx.hpp>
 #include <qsys/qsys.hpp>
 
+#include "ElecView.hpp"
 #include "wrapper.hpp"
 
 namespace node_jsbr {
+
 using qlib::LString;
 
 // for test
@@ -60,6 +62,7 @@ Napi::Value initCueMol(const Napi::CallbackInfo &info)
         qlib::init();
         gfx::init();
         qsys::init(config.c_str());
+        registerViewFactory();
     } catch (const qlib::LException &e) {
         printf("XXXXX\n");
         // LOG_DPRINTLN("Init> Caught exception <%s>", typeid(e).name());
@@ -188,6 +191,45 @@ Napi::Value createObj(const Napi::CallbackInfo &info)
     return Wrapper::createWrapper(env, static_cast<qlib::LScriptable *>(pDyn));
 }
 
+Napi::Value bindPeer(const Napi::CallbackInfo &info)
+{
+    printf("bindPeer called\n");
+    Napi::Env env = info.Env();
+
+    if (info.Length() != 2) {
+        Napi::TypeError::New(env, "Wrong number of arguments")
+            .ThrowAsJavaScriptException();
+        return env.Null();
+    }
+
+    if (!info[0].IsObject()) {
+        Napi::TypeError::New(env, "arg0 is not wrapper obj")
+            .ThrowAsJavaScriptException();
+        return env.Null();
+    }
+
+    // try to get wrapped scrobj
+    auto obj = info[0].ToObject();
+    // TODO: use napi_unwrap directly to aviod throw exception
+    Wrapper *pWrapper = Wrapper::Unwrap(obj);
+
+    auto pScObj = pWrapper->getWrapped();
+    if (!pScObj) {
+        Napi::TypeError::New(env, "arg0 is not wrapper obj")
+            .ThrowAsJavaScriptException();
+        return env.Null();
+    }
+    printf("pScObj: %s\n", pScObj->toString().c_str());
+    printf("isSmartPtr: %d\n", pScObj->isSmartPtr());
+    auto pView = dynamic_cast<ElecView *>(pScObj->getSPInner());
+    printf("ElecView: %p\n", pView);
+
+    auto arg1 = info[1].As<Napi::Object>();
+    pView->bindPeer(arg1);
+
+    return env.Null();
+}
+
 }  // namespace node_jsbr
 
 Napi::Object Init(Napi::Env env, Napi::Object exports)
@@ -206,6 +248,9 @@ Napi::Object Init(Napi::Env env, Napi::Object exports)
                 Napi::Function::New(env, node_jsbr::getService));
     exports.Set(Napi::String::New(env, "createObj"),
                 Napi::Function::New(env, node_jsbr::createObj));
+
+    exports.Set(Napi::String::New(env, "bindPeer"),
+                Napi::Function::New(env, node_jsbr::bindPeer));
 
     exports = node_jsbr::Wrapper::Init(env, exports);
 

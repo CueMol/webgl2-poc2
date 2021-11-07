@@ -14,6 +14,7 @@
 #include "SceneXMLWriter.hpp"
 #include "ViewInputConfig.hpp"
 #include "RendGroup.hpp"
+#include "TestRenderer.hpp"
 
 #include <qlib/FileStream.hpp>
 #include <gfx/gfx.hpp>
@@ -154,6 +155,7 @@ bool init(const char *config)
 
   RendererFactory *pRF = RendererFactory::getInstance();
   pRF->regist<RendGroup>();
+  pRF->regist<TestRenderer>();
 
   StyleMgr::init();
   CmdMgr::init();
