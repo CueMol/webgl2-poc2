@@ -10,7 +10,7 @@ module.exports = class WebGLRender {
         this._mgr.init(canvas);
 
         this._proxy = new gfx_render.Proxy();
-        this._proxy.setManager(this._mgr);
+        this._proxy.setManager(this._mgr, canvas.getContext('webgl2'));
         this._proxy.create();
     }
 

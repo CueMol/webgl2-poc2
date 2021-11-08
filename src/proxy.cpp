@@ -11,7 +11,7 @@ Napi::Object Proxy::Init(Napi::Env env, Napi::Object exports) {
                     "Proxy",
                     { InstanceMethod("setManager", &Proxy::SetManager),
                       InstanceMethod("create", &Proxy::Create),
-                      InstanceMethod("render", &Proxy::Render) });
+                      InstanceMethod("render", &Proxy::Render)});
     
     Napi::FunctionReference* constructor = new Napi::FunctionReference();
     *constructor = Napi::Persistent(func);
@@ -35,7 +35,7 @@ Napi::Value Proxy::SetManager(const Napi::CallbackInfo& info)
 {
     Napi::Env env = info.Env();
 
-    if (info.Length() != 1) {
+    if (info.Length() != 2) {
         Napi::TypeError::New(env, "Wrong number of arguments")
             .ThrowAsJavaScriptException();
         return env.Null();
@@ -48,6 +48,15 @@ Napi::Value Proxy::SetManager(const Napi::CallbackInfo& info)
     }
 
     disp_mgr_ = Napi::Persistent(info[0].As<Napi::Object>());
+
+    /////
+
+    if (!info[1].IsObject()) {
+        Napi::TypeError::New(env, "Wrong type of argument 0")
+            .ThrowAsJavaScriptException();
+        return env.Null();
+    }
+    webgl_ctxt_ = Napi::Persistent(info[1].As<Napi::Object>());
 
     printf("Proxy::SetManager OK\n");
     return env.Undefined();
@@ -112,6 +121,7 @@ Napi::Value Proxy::Create(const Napi::CallbackInfo& info)
     printf("Proxy::Create OK\n");
     return env.Undefined();
 }
+
 Napi::Value Proxy::Render(const Napi::CallbackInfo& info)
 {
     // printf("Proxy::Render called\n");
@@ -186,6 +196,19 @@ std::string format(const std::string& fmt, Args ... args )
 
 int Proxy::createBuffer(const Napi::CallbackInfo& info, int buffer_size, int nelems)
 {
+    Napi::Env env = info.Env();
+
+    float *pbuf = new float[buffer_size];
+    auto buf_array =
+        Napi::ArrayBuffer::New(env, pbuf, buffer_size * sizeof(float),
+                               [] (Napi::Env, void* finalizeData) {
+                                   printf("finalizer called for %p\n", finalizeData);
+                                   // delete [] static_cast<float*>(finalizeData);
+                               });
+    // auto buf_array = Napi::Float32Array::New(env, buffer_size);
+    Napi::Object &xxx = buf_array;
+    buf_array_ = Napi::Persistent(xxx);
+
     std::string json_str;
     json_str += "[";
     for (size_t i=0; i<vert_buf_.getAttrSize(); ++i) {
@@ -203,15 +226,13 @@ int Proxy::createBuffer(const Napi::CallbackInfo& info, int buffer_size, int nel
     // Call the JS-side display manager's getBuffer() method
     // to get the GL-bound buffer array
 
-    Napi::Env env = info.Env();
-
     auto method = disp_mgr_.Get("createBuffer").As<Napi::Function>();
     auto rval = method.Call(disp_mgr_.Value(),
-                            { Napi::Number::New(env, buffer_size),
+                            { buf_array,
                               Napi::Number::New(env, nelems),
                               Napi::String::New(env, json_str) });
 
-    int buffer_id = rval.As<Napi::Number>().Int32Value();
+    int buffer_id = 0; // rval.As<Napi::Number>().Int32Value();
     printf("buffer ID: %d\n", buffer_id);
 
     return buffer_id;
@@ -220,20 +241,19 @@ int Proxy::createBuffer(const Napi::CallbackInfo& info, int buffer_size, int nel
 
 float* Proxy::getBuffer(const Napi::CallbackInfo& info, int buffer_id)
 {
-    // Call the JS-side display manager's getBuffer() method
-    // to get the GL-bound buffer array
-
     Napi::Env env = info.Env();
 
-    auto method = disp_mgr_.Get("getBuffer").As<Napi::Function>();
-    auto rval = method.Call(disp_mgr_.Value(), {Napi::Number::New(env, buffer_id)});
-    if (!rval.IsTypedArray()) {
-        Napi::TypeError::New(env, "getBuffer returned unexpected type")
-            .ThrowAsJavaScriptException();
-        return nullptr;
-    }
-    
-    auto array_buf = rval.As<Napi::Float32Array>();
+    // auto method = disp_mgr_.Get("getBuffer").As<Napi::Function>();
+    // auto rval = method.Call(disp_mgr_.Value(), {Napi::Number::New(env, buffer_id)});
+    // if (!rval.IsTypedArray()) {
+    //     Napi::TypeError::New(env, "getBuffer returned unexpected type")
+    //         .ThrowAsJavaScriptException();
+    //     return nullptr;
+    // }
+    // auto array_buf = rval.As<Napi::Float32Array>();
+
+    // auto array_buf = buf_array_.Value().As<Napi::Float32Array>();
+    auto array_buf = buf_array_.Value().As<Napi::ArrayBuffer>();
     float *pbuf = static_cast<float*>(array_buf.Data());
     size_t len = array_buf.ByteLength();
     // printf("buffer ptr: %p, size %lu\n", pbuf, len / sizeof(float));
@@ -248,31 +268,5 @@ void Proxy::sendBuffer(const Napi::CallbackInfo& info, int buffer_id)
     auto method = disp_mgr_.Get("sendBuffer").As<Napi::Function>();
     method.Call(disp_mgr_.Value(), {Napi::Number::New(env, buffer_id)});
 }
-
-// Napi::Value Proxy::SetManager(const Napi::CallbackInfo& info) {
-//     double num = this->value_;
-
-//     return Napi::Number::New(info.Env(), num);
-// }
-
-// Napi::Value Proxy::PlusOne(const Napi::CallbackInfo& info) {
-//     this->value_ = this->value_ + 1;
-
-//     return Proxy::GetValue(info);
-// }
-
-// Napi::Value Proxy::Multiply(const Napi::CallbackInfo& info) {
-//     Napi::Number multiple;
-//     if (info.Length() <= 0 || !info[0].IsNumber()) {
-//         multiple = Napi::Number::New(info.Env(), 1);
-//     } else {
-//         multiple = info[0].As<Napi::Number>();
-//     }
-
-//     Napi::Object obj = info.Env().GetInstanceData<Napi::FunctionReference>()->New(
-//                                                                                   {Napi::Number::New(info.Env(), this->value_ * multiple.DoubleValue())});
-
-//     return obj;
-// }
 
 }

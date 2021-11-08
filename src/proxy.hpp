@@ -40,6 +40,9 @@ private:
 
     /// JS-side WebGL display manager
     Napi::ObjectReference disp_mgr_;
+    Napi::ObjectReference webgl_ctxt_;
+
+    Napi::ObjectReference buf_array_;
 
     static inline float clamp(float min, float max, float val)
     {

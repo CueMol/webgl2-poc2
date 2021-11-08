@@ -21,12 +21,8 @@ class AttrInfo {
 }
 
 class DrawEntry {
-    constructor(gl, val, cal, nsize, nelems) {
-        this._nsize = nsize;
+    constructor(gl, val, cal, buf_array, nelems) {
         this._nelems = nelems;
-
-        this._buf = new Float32Array(nsize);
-        console.log("alloc Float32Array nsize=", nsize);
 
         // VAO
         this._vao = gl.createVertexArray();
@@ -39,10 +35,13 @@ class DrawEntry {
         gl.vertexAttribPointer(val, VERTEX_SIZE, gl.FLOAT, false, STRIDE, POSITION_OFFSET);
         gl.enableVertexAttribArray(cal);
         gl.vertexAttribPointer(cal, COLOR_SIZE, gl.FLOAT, false, STRIDE, COLOR_OFFSET);
-        gl.bufferData(gl.ARRAY_BUFFER, this._buf, gl.STATIC_DRAW);
+        // gl.bufferData(gl.ARRAY_BUFFER, this._buf, gl.STATIC_DRAW);
+        gl.bufferData(gl.ARRAY_BUFFER, buf_array, gl.STATIC_DRAW);
 
         gl.bindVertexArray(null);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+        this._buf = buf_array;
     }
 
     draw(gl) {
@@ -72,7 +71,6 @@ module.exports = class Manager {
     init(canvas) {
         this._canvas = canvas;
         this._context = canvas.getContext('webgl2');
-
     }
 
     // Create shader program
@@ -132,7 +130,7 @@ module.exports = class Manager {
 
     // Create new WebGL buffer
     // Called from native side
-    createBuffer(nsize, num_elems, elem_info_str) {
+    createBuffer(array_buf, num_elems, elem_info_str) {
         const gl = this._context;
         // console.log("elem info:", elem_info_str);
         let elem_info = JSON.parse(elem_info_str);
@@ -147,7 +145,7 @@ module.exports = class Manager {
         let obj = new DrawEntry(gl,
                                 this._vertexAttribLocation,
                                 this._colorAttribLocation,
-                                nsize,
+                                array_buf,
                                 num_elems);
         const new_id = this._new_draw_id
         this._draw_data[new_id] = obj;
@@ -167,10 +165,6 @@ module.exports = class Manager {
         this._mat_ubo = matrix_ubo;
         
         return new_id;
-    }
-
-    getBuffer(id) {
-        return this._draw_data[id]._buf;
     }
 
     // Send WebGL buffer to GPU
