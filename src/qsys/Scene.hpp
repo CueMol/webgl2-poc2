@@ -6,67 +6,66 @@
 #ifndef QSYS_SCENE_HPP_INCLUDED
 #define QSYS_SCENE_HPP_INCLUDED
 
-#include "qsys.hpp"
-
+#include <qlib/LPropEvent.hpp>
+#include <qlib/LScrCallBack.hpp>
 #include <qlib/LScrObjects.hpp>
 #include <qlib/LScrSmartPtr.hpp>
 #include <qlib/ObjectManager.hpp>
-#include <qlib/LScrCallBack.hpp>
-#include <qlib/LPropEvent.hpp>
+
+#include "qsys.hpp"
 
 // #include <gfx/AbstractColor.hpp>
 // #include <gfx/CmsXform.hpp>
 
+#include "Camera.hpp"
 #include "Object.hpp"
 #include "ObjectEvent.hpp"
-#include "View.hpp"
-#include "Camera.hpp"
 #include "UndoManager.hpp"
+#include "View.hpp"
 
 class Scene_wrap;
 
 namespace qlib {
-  class InStream;
-  class OutStream;
-  class LByteArray;
-}
+class InStream;
+class OutStream;
+class LByteArray;
+}  // namespace qlib
 
 namespace gfx {
-  class DisplayContext;
+class DisplayContext;
 }
 
 // interpreter bound to this scene
 namespace jsbr {
-  class Interp;
+class Interp;
 }
 
 using qlib::LString;
 
 namespace qsys {
 
-  class SceneEventCaster;
-  class SceneEventListener;
-  class SceneEvent;
-  class ObjLoadEditInfo;
-  class StyleMgr;
-  class AnimMgr;
+class SceneEventCaster;
+class SceneEventListener;
+class SceneEvent;
+class ObjLoadEditInfo;
+class StyleMgr;
+class AnimMgr;
 
-  class QSYS_API Scene :
-    public qlib::LNoCopyScrObject,
-    public qlib::LUIDObject,
-    public qlib::LPropEventListener,
-    public ObjectEventListener,
-    public RendererEventListener
-  {
+class QSYS_API Scene : public qlib::LNoCopyScrObject,
+                       public qlib::LUIDObject,
+                       public qlib::LPropEventListener,
+                       public ObjectEventListener,
+                       public RendererEventListener
+{
     MC_SCRIPTABLE;
 
     friend class ObjLoadEditInfo;
     friend class ::Scene_wrap;
-    
+
     ////////////////////////////////////////////////////////////
     // Typedefs
 
-  private:
+private:
     typedef std::map<qlib::uid_t, ObjectPtr> data_t;
 
     typedef std::map<qlib::uid_t, RendererPtr> rendtab_t;
@@ -78,16 +77,15 @@ namespace qsys {
     typedef qlib::LNoCopyScrObject super_t;
     // typedef qlib::LSimpleCopyScrObject super_t;
 
-  public:
+public:
     typedef data_t::const_iterator ObjIter;
     typedef viewtab_t::const_iterator ViewIter;
     typedef camtab_t::const_iterator CameraIter;
-    
+
     ////////////////////////////////////////////////////////////
     // Implementation: Data
 
-  private:
-
+private:
     /// Name of this scene
     LString m_name;
 
@@ -135,8 +133,7 @@ namespace qsys {
     ///  (used to avoid event generation on the loading phase)
     bool m_bLoading;
 
-  public:
-
+public:
     ////////////////////////////////////////////////////////////
 
     /// constructor
@@ -152,9 +149,12 @@ namespace qsys {
     // Properties
 
     /// Name of the scene (read only from UI)
-    const LString &getName() const { return m_name; }
+    const LString &getName() const
+    {
+        return m_name;
+    }
     void setName(const LString &name);
-  
+
     /// Get modified flag
     bool isModified() const;
 
@@ -162,28 +162,38 @@ namespace qsys {
     bool isJustCreated() const;
 
     /// Get UID of this scene (readonly)
-    qlib::uid_t getUID() const { return m_nUID; }
+    qlib::uid_t getUID() const
+    {
+        return m_nUID;
+    }
 
-    const gfx::ColorPtr &getBgColor() const { return m_pBgColor; }
-    void setBgColor(const gfx::ColorPtr &r) {
-      setUpdateFlag();      
-      m_pBgColor = r;
+    const gfx::ColorPtr &getBgColor() const
+    {
+        return m_pBgColor;
+    }
+    void setBgColor(const gfx::ColorPtr &r)
+    {
+        setUpdateFlag();
+        m_pBgColor = r;
     }
 
     /// get source path of this scene
-    const LString &getSource() const {
-      return m_source;
+    const LString &getSource() const
+    {
+        return m_source;
     }
     /// set source path of this scene
     void setSource(const LString &name);
 
     /// get source path of this scene
-    const LString &getSourceType() const {
-      return m_sourceType;
+    const LString &getSourceType() const
+    {
+        return m_sourceType;
     }
     /// set source path of this scene
-    void setSourceType(const LString &name) {
-      m_sourceType = name;
+    void setSourceType(const LString &name)
+    {
+        m_sourceType = name;
     }
 
     /// Return the base path for this scene (directory containing source file)
@@ -194,9 +204,10 @@ namespace qsys {
     /// Convert rel and abs of src and alt_src paths
     std::pair<LString, LString> convSrcPaths(const LString &aSrc,
                                              const LString &aAltSrc) const;
-    
+
     /// Convert rel and abs of src and alt_src paths
-    /// This method calls convSrcPaths() and additionary append src and alt_src attributes to pNode.
+    /// This method calls convSrcPaths() and additionary append src and alt_src
+    /// attributes to pNode.
     std::pair<LString, LString> setPathsToNode(const LString &aSrc,
                                                const LString &aAltSrc,
                                                qlib::LDom2Node *pNode) const;
@@ -204,7 +215,10 @@ namespace qsys {
     ////////////////////////////////////////////////////////////
     // Script interpreter operations
 
-    jsbr::Interp *getInterp() const { return m_pInterp; }
+    jsbr::Interp *getInterp() const
+    {
+        return m_pInterp;
+    }
 
     bool execJSFile(const LString &scr);
 
@@ -227,24 +241,34 @@ namespace qsys {
 
     int getAllObjectUIDs(qlib::UIDList &uids) const;
 
-    ObjIter beginObj() const { return m_data.begin(); }
-    ObjIter endObj() const { return m_data.end(); }
+    ObjIter beginObj() const
+    {
+        return m_data.begin();
+    }
+    ObjIter endObj() const
+    {
+        return m_data.end();
+    }
 
     /// get the number of object in the scene
-    int getObjectCount() const { return m_data.size(); }
+    int getObjectCount() const
+    {
+        return m_data.size();
+    }
 
     // Active object
-  private:
+private:
     /// Active object's ID
     qlib::uid_t m_nActiveObjID;
-    
-  public:
+
+public:
     /// Set active object ID in this scene.
     /// This scene also become active as a side effect.
     void setActiveObjID(qlib::uid_t uid);
 
-    qlib::uid_t getActiveObjID() const {
-      return m_nActiveObjID;
+    qlib::uid_t getActiveObjID() const
+    {
+        return m_nActiveObjID;
     }
 
     //
@@ -261,11 +285,11 @@ namespace qsys {
     /// Get scene information in JSON format (w/ rend groups)
     LString getSceneDataJSON(bool bGroup = true) const;
 
-  private:
+private:
     // Object Implementation
     bool registerObjectImpl(ObjectPtr robj);
-    
-  public:
+
+public:
     ////////////////////////////////////////////////////////////
     // View manager
 
@@ -281,31 +305,45 @@ namespace qsys {
     /// Destroy view by UID
     bool destroyView(qlib::uid_t uid);
 
-    ViewIter beginView() const { return m_viewtab.begin(); }
-    ViewIter endView() const { return m_viewtab.end(); }
+    ViewIter beginView() const
+    {
+        return m_viewtab.begin();
+    }
+    ViewIter endView() const
+    {
+        return m_viewtab.end();
+    }
 
     /// Get current view count (size)
-    int getViewCount() const { return m_viewtab.size(); }
+    int getViewCount() const
+    {
+        return m_viewtab.size();
+    }
 
     /// Get view table reference
-    const auto &getViewTable() const { return m_viewtab; }
+    const auto &getViewTable() const
+    {
+        return m_viewtab;
+    }
 
     // Active view
-  private:
+private:
     /// Active view's ID
     qlib::uid_t m_nActiveViewID;
-    
-  public:
+
+public:
     /// Set active view
     /// This scene also become active as a side effect.
     void setActiveViewID(qlib::uid_t uid);
 
-    qlib::uid_t getActiveViewID() const {
-      return m_nActiveViewID;
+    qlib::uid_t getActiveViewID() const
+    {
+        return m_nActiveViewID;
     }
 
-    ViewPtr getActiveView() const {
-      return getView(m_nActiveViewID);
+    ViewPtr getActiveView() const
+    {
+        return getView(m_nActiveViewID);
     }
 
     //////////
@@ -317,7 +355,7 @@ namespace qsys {
     ////////////////////////////////////////////////////////////
     // Camera manager
 
-  private:
+private:
     // /// Load camera setting from file (impl/throw excp)
     // CameraPtr loadCameraImpl(const LString &aLocalFile) const;
 
@@ -325,7 +363,7 @@ namespace qsys {
     /// This method overwrite if the camera with the same name exists.
     void setCameraImpl(const LString &name, CameraPtr r);
 
-  public:
+public:
     /// Register new camera setting (with event firing)
     /// This method overwrite if the camera with the same name exists.
     void setCamera(const LString &name, CameraPtr r);
@@ -342,10 +380,19 @@ namespace qsys {
     /// Destroy camera by name
     bool destroyCamera(const LString &nm);
 
-    CameraIter beginCamera() const { return m_camtab.begin(); }
-    CameraIter endCamera() const { return m_camtab.end(); }
+    CameraIter beginCamera() const
+    {
+        return m_camtab.begin();
+    }
+    CameraIter endCamera() const
+    {
+        return m_camtab.end();
+    }
 
-    int getCameraCount() const { return m_camtab.size(); }
+    int getCameraCount() const
+    {
+        return m_camtab.size();
+    }
 
     /// Save view setting to the camera (view --> camera)
     bool saveViewToCam(qlib::uid_t viewid, const LString &nm);
@@ -353,12 +400,14 @@ namespace qsys {
     /// Apply camera setting to the view (camera --> view)
     /// @param viewid target view ID to apply camera setting
     /// @param camname name of the camera
-    void loadViewFromCam(qlib::uid_t viewid, const LString &camname) {
-      setCamToViewAnim(viewid, camname, false);
+    void loadViewFromCam(qlib::uid_t viewid, const LString &camname)
+    {
+        setCamToViewAnim(viewid, camname, false);
     }
 
-    void loadViewFromCamAnim(qlib::uid_t viewid, const LString &camname) {
-      setCamToViewAnim(viewid, camname, true);
+    void loadViewFromCamAnim(qlib::uid_t viewid, const LString &camname)
+    {
+        setCamToViewAnim(viewid, camname, true);
     }
 
     /// Apply camera setting to the view with anim (camera --> view)
@@ -388,66 +437,76 @@ namespace qsys {
     RendererPtr getRenderer(qlib::uid_t uid) const;
     RendererPtr getRendByName(const LString &nm) const;
 
-  private:
+private:
     void displayRendImpl(DisplayContext *pdc, ObjectPtr pObj, RendererPtr pRend);
-    
+
     // Active renderer
-  private:
+private:
     /// Active renderer's ID
     qlib::uid_t m_nActiveRendID;
-    
-  public:
+
+public:
     /// Set active renderer ID in this scene.
     /// This scene also become active as a side effect.
     void setActiveRendID(qlib::uid_t uid);
 
-    qlib::uid_t getActiveRendID() const {
-      return m_nActiveRendID;
+    qlib::uid_t getActiveRendID() const
+    {
+        return m_nActiveRendID;
     }
 
-  public:
+public:
     ////////////////////////////////////////////////////////////
     // Undo/Redo
 
-    UndoManager *getUndoMgr() {
-      return &m_undomgr;
+    UndoManager *getUndoMgr()
+    {
+        return &m_undomgr;
     }
 
     bool undo(int nstep);
 
     bool redo(int nstep);
 
-    void startUndoTxn(const LString &descr) {
-      m_undomgr.startTxn(descr);
+    void startUndoTxn(const LString &descr)
+    {
+        m_undomgr.startTxn(descr);
     }
-    void rollbackUndoTxn() {
-      m_undomgr.rollbackTxn();
+    void rollbackUndoTxn()
+    {
+        m_undomgr.rollbackTxn();
     }
     void commitUndoTxn();
 
-    bool isUndoable() const {
-      return m_undomgr.isUndoable();
+    bool isUndoable() const
+    {
+        return m_undomgr.isUndoable();
     }
-    bool isRedoable() const {
-      return m_undomgr.isRedoable();
-    }
-
-    LString getUndoDesc(int n) const {
-      LString desc;
-      m_undomgr.getUndoDesc(n, desc);
-      return desc;
-    }
-    LString getRedoDesc(int n) const {
-      LString desc;
-      m_undomgr.getRedoDesc(n, desc);
-      return desc;
+    bool isRedoable() const
+    {
+        return m_undomgr.isRedoable();
     }
 
-    int getUndoSize() const {
-      return m_undomgr.getUndoSize();
+    LString getUndoDesc(int n) const
+    {
+        LString desc;
+        m_undomgr.getUndoDesc(n, desc);
+        return desc;
     }
-    int getRedoSize() const {
-      return m_undomgr.getRedoSize();
+    LString getRedoDesc(int n) const
+    {
+        LString desc;
+        m_undomgr.getRedoDesc(n, desc);
+        return desc;
+    }
+
+    int getUndoSize() const
+    {
+        return m_undomgr.getUndoSize();
+    }
+    int getRedoSize() const
+    {
+        return m_undomgr.getRedoSize();
     }
 
     // clear undo/redo data for scripting interface
@@ -456,19 +515,29 @@ namespace qsys {
 
     ////////////////////////////////////////////////
     // Animation management
-  private:
+private:
     qlib::LScrSp<AnimMgr> m_pAnimMgr;
-  public:
-    qlib::LScrSp<AnimMgr> getAnimMgr() const { return m_pAnimMgr; }
+
+public:
+    qlib::LScrSp<AnimMgr> getAnimMgr() const
+    {
+        return m_pAnimMgr;
+    }
 
     ////////////////////////////////////////////////
     // Event related operations
-  private:
+private:
     bool m_bUpdateRequired;
 
-  public:
-    void setUpdateFlag() { m_bUpdateRequired = true; }
-    void clearUpdateFlag() { m_bUpdateRequired = false; }
+public:
+    void setUpdateFlag()
+    {
+        m_bUpdateRequired = true;
+    }
+    void clearUpdateFlag()
+    {
+        m_bUpdateRequired = false;
+    }
     void checkAndUpdate();
 
     int addListener(SceneEventListener *pL);
@@ -511,7 +580,7 @@ namespace qsys {
     /// force to embed all external files (cameras and styles)
     void forceEmbed();
 
-  private:
+private:
     // writeTo2/readFrom2 impl for specific settings
 
     /// WriteTo2() impl for style settings
@@ -523,12 +592,15 @@ namespace qsys {
     void cameraReadFrom(qlib::LDom2Node *pNode);
     void stylesReadFrom(qlib::LDom2Node *pNode);
 
-  private:
+private:
     qlib::LDom2Node *m_pQscOpts;
 
-  public:
+public:
     void setQscOpts(qlib::LDom2Node *ptree);
-    qlib::LDom2Node *getQscOpts() const { return m_pQscOpts; }
+    qlib::LDom2Node *getQscOpts() const
+    {
+        return m_pQscOpts;
+    }
 
     ////////////////////////////////////////////////////////////
     // Misc operations
@@ -548,7 +620,7 @@ namespace qsys {
 
     ////////////////////////////////////////////////////////////
     // color management
-  private:
+private:
     /// CMYK proofing flag
     bool m_bUseColProof;
 
@@ -558,11 +630,17 @@ namespace qsys {
     // /// color transformation object
     // gfx::CmsXform m_cmsxfm;
 
-  public:
-    bool isUseColProof() const { return m_bUseColProof; }
+public:
+    bool isUseColProof() const
+    {
+        return m_bUseColProof;
+    }
     void setUseColProof(bool b);
-    
-    const LString &getIccFileName() const { return m_iccFileName; }
+
+    const LString &getIccFileName() const
+    {
+        return m_iccFileName;
+    }
     void setIccFileName(const LString &fn);
 
     int getIccIntent() const;
@@ -570,9 +648,8 @@ namespace qsys {
 
     /// convert to string
     virtual LString toString() const;
-    
-  };
+};
 
-}
+}  // namespace qsys
 
-#endif // QSYS_SCENE_HPP_INCLUDE_
+#endif  // QSYS_SCENE_HPP_INCLUDE_

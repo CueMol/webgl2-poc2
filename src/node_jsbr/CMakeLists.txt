@@ -27,6 +27,7 @@ SET(NODE_JSBR_SRCS
   wrapper.cpp
   ElecView.cpp
   ElecDisplayContext.cpp
+  ElecProgramObject.cpp
   ${CMAKE_JS_SRC}
   )
 

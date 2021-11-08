@@ -4,14 +4,24 @@
 
 namespace node_jsbr {
 
+class ElecProgramObject;
+class ElecView;
+
 class ElecDisplayContext : public gfx::DisplayContext
 {
 private:
     typedef gfx::DisplayContext super_t;
 
+    ElecView *m_pView;
+
+    /// Default program object (shader)
+    ElecProgramObject *m_pDefPO;
+
 public:
-    ElecDisplayContext() {}
+    ElecDisplayContext() : m_pView(nullptr), m_pDefPO(nullptr) {}
     virtual ~ElecDisplayContext();
+
+    void init(ElecView *pView);
 
     virtual bool setCurrent();
     virtual bool isCurrent() const;

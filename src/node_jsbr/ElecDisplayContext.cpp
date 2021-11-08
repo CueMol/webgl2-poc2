@@ -1,7 +1,23 @@
 #include "ElecDisplayContext.hpp"
 
+#include "ElecProgramObject.hpp"
+
 namespace node_jsbr {
-ElecDisplayContext::~ElecDisplayContext() {}
+ElecDisplayContext::~ElecDisplayContext()
+{
+    if (m_pDefPO) delete m_pDefPO;
+}
+
+void ElecDisplayContext::init(ElecView *pView)
+{
+    m_pView = pView;
+
+    m_pDefPO = new ElecProgramObject(pView);
+    qlib::MapTable<qlib::LString> file_names;
+    file_names.set("vertex", "shaders/vertex_shader.glsl");
+    file_names.set("fragment", "shaders/fragment_shader.glsl");
+    m_pDefPO->loadShaders(file_names);
+}
 
 bool ElecDisplayContext::setCurrent()
 {
@@ -13,7 +29,7 @@ bool ElecDisplayContext::isCurrent() const
 }
 bool ElecDisplayContext::isFile() const
 {
-    return true;
+    return false;
 }
 
 void ElecDisplayContext::vertex(const qlib::Vector4D &) {}

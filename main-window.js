@@ -32,8 +32,6 @@ window.addEventListener("load", () => {
 	    console.log("Update button click() called!!");
     });
 
-    resizeObserver.observe(document.getElementById("placeholder"));
-
     // webgl.init(canvas);
 
     fpsElem = document.getElementById('fps');

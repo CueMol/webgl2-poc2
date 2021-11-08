@@ -15,6 +15,9 @@ class ElecView : public qsys::View
 private:
     ElecDisplayContext *m_pCtxt;
 
+    /// JS-side WebGL display manager
+    Napi::ObjectReference m_peerObjRef;
+
 public:
     ElecView();
 
@@ -25,6 +28,8 @@ public:
     //////////
 
 public:
+    bool init();
+
     virtual LString toString() const;
 
     /// Setup the projection matrix for stereo (View interface)
@@ -41,6 +46,10 @@ public:
     //////////
 
     void bindPeer(Napi::Object peer);
+
+    inline Napi::Object getPeerObj() {
+        return m_peerObjRef.Value();
+    }
 };
 
 class ElecViewFactory : public qsys::ViewFactory

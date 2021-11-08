@@ -7,25 +7,23 @@
 #ifndef TEST_RENDERER_HPP_
 #define TEST_RENDERER_HPP_
 
-#include "qsys.hpp"
-
 #include <gfx/SolidColor.hpp>
+
 #include "Renderer.hpp"
+#include "qsys.hpp"
 
 namespace qsys {
 
-  class QSYS_API TestRenderer : public Renderer
-  {
+class QSYS_API TestRenderer : public Renderer
+{
     MC_SCRIPTABLE;
     MC_CLONEABLE;
 
-  private:
+private:
     typedef qsys::Renderer super_t;
 
-  public:
-
+public:
     gfx::ColorPtr m_col1;
-    
 
     TestRenderer();
     TestRenderer(const TestRenderer &r) : Renderer(r) {}
@@ -41,19 +39,21 @@ namespace qsys {
 
     virtual bool isCompatibleObj(ObjectPtr pobj) const
     {
-      return false;
+        return false;
     }
 
     virtual void unloading() {}
 
+    virtual bool isHitTestSupported() const
+    {
+        return false;
+    }
+
     // virtual bool isHitTestSupported() const { return true; }
-    virtual bool isHitTestSupported() const { return false; }
-    virtual void displayHit(DisplayContext *pdc);
+    // virtual void displayHit(DisplayContext *pdc);
     // virtual LString interpHit(const gfx::RawHitData &rhit);
+};
 
-  };
-
-}
+}  // namespace qsys
 
 #endif
-
