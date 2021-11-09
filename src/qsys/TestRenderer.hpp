@@ -7,7 +7,9 @@
 #ifndef TEST_RENDERER_HPP_
 #define TEST_RENDERER_HPP_
 
+#include <gfx/DrawAttrArray.hpp>
 #include <gfx/SolidColor.hpp>
+#include <random_generator.hpp>
 
 #include "Renderer.hpp"
 #include "qsys.hpp"
@@ -23,6 +25,16 @@ private:
     typedef qsys::Renderer super_t;
 
 public:
+    struct DrawAttr
+    {
+        float x, y, z;
+        float r, g, b, a;
+    };
+
+    using DrawArray = gfx::DrawAttrArray<DrawAttr>;
+
+    DrawArray *m_pDrawData;
+
     gfx::ColorPtr m_col1;
 
     TestRenderer();
@@ -52,6 +64,65 @@ public:
     // virtual bool isHitTestSupported() const { return true; }
     // virtual void displayHit(DisplayContext *pdc);
     // virtual LString interpHit(const gfx::RawHitData &rhit);
+
+    static constexpr int VERTEX_NUMS = 6 * 1000;  // * 1000;
+    static constexpr float scl = 1.0f;
+    static constexpr float tri_size = 10.0;
+    static constexpr float vertices_orig[] = {
+        -tri_size, tri_size,  0.0, 1.0, 0.0, 0.0, 1.0,
+        -tri_size, -tri_size, 0.0, 0.0, 1.0, 0.0, 1.0,
+        tri_size,  tri_size,  0.0, 0.0, 0.0, 1.0, 1.0,
+        -tri_size, -tri_size, 0.0, 0.0, 1.0, 0.0, 1.0,
+        tri_size,  -tri_size, 0.0, 0.0, 0.0, 0.0, 1.0,
+        tri_size,  tri_size,  0.0, 0.0, 0.0, 1.0, 1.0,
+    };
+
+    static inline float clamp(float min, float max, float val)
+    {
+        return std::min<float>(std::max<float>(min, val), max);
+    }
+
+    /// Random number generator
+    gfx_render::RandomGenerator rng_;
+
+    inline double randomUniform()
+    {
+        return rng_.randomUniform();
+    }
+
+    inline void initData()
+    {
+        const size_t elem_size = m_pDrawData->getElemSize();
+        float *pbuf =
+            const_cast<float *>(static_cast<const float *>(m_pDrawData->getData()));
+        for (size_t i = 0; i < VERTEX_NUMS / 6; ++i) {
+            const size_t bias = i * 6 * elem_size;
+            for (int j = 0; j < 6 * elem_size; ++j) {
+                pbuf[bias + j] = vertices_orig[j];
+                // if (buffer_size <= bias + j) {
+                //     printf("XXXXXXXXXXXXXXXXXXX buffer overrun\n");
+                // }
+            }
+        }
+    }
+
+    inline void updateData()
+    {
+        for (size_t i = 0; i < VERTEX_NUMS; ++i) {
+            m_pDrawData->at(i).x += randomUniform() * scl;
+            m_pDrawData->at(i).y += randomUniform() * scl;
+            m_pDrawData->at(i).z += randomUniform() * scl;
+
+            m_pDrawData->at(i).r =
+                clamp(0, 1, randomUniform() * 0.1 + m_pDrawData->at(i).r);
+            m_pDrawData->at(i).g =
+                clamp(0, 1, randomUniform() * 0.1 + m_pDrawData->at(i).g);
+            m_pDrawData->at(i).b =
+                clamp(0, 1, randomUniform() * 0.1 + m_pDrawData->at(i).b);
+            // m_pDrawData->at(i).a =
+            //     clamp(0, 1, randomUniform() * 0.1 + m_pDrawData->at(i).a);
+        }
+    }
 };
 
 }  // namespace qsys

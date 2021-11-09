@@ -19,6 +19,12 @@ void ElecDisplayContext::init(ElecView *pView)
     m_pDefPO->loadShaders(file_names);
 }
 
+void ElecDisplayContext::drawElem(const gfx::AbstDrawElem &data)
+{
+    printf("ElecDisplayContext::drawElem\n");
+}
+
+
 bool ElecDisplayContext::setCurrent()
 {
     return true;

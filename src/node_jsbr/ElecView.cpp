@@ -44,6 +44,9 @@ void ElecView::drawScene()
 
     gfx::DisplayContext *pdc = getDisplayContext();
     pdc->setCurrent();
+
+    gfx::ColorPtr pBgCol = pScene->getBgColor();
+
     pScene->display(pdc);
 }
 

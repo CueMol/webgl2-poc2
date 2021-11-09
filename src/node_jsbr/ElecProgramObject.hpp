@@ -13,6 +13,8 @@ private:
 
     int m_progObjID;
 
+    qlib::LString loadFile(const qlib::LString &filename);
+
 public:
     ElecProgramObject(ElecView *pView) : m_pView(pView), m_progObjID(-1) {}
     virtual ~ElecProgramObject();

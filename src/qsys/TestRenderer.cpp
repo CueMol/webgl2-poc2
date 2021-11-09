@@ -11,13 +11,15 @@ using namespace qsys;
 using gfx::DisplayContext;
 using gfx::SolidColor;
 
-TestRenderer::TestRenderer() : Renderer()
+TestRenderer::TestRenderer() : Renderer(), m_pDrawData(nullptr)
 {
     resetAllProps();
 }
 
 TestRenderer::~TestRenderer()
 {
+    if (m_pDrawData)
+        delete m_pDrawData;
     LOG_DPRINTLN("TestRenderer(%p) destructed\n", this);
 }
 
@@ -35,124 +37,16 @@ const char *TestRenderer::getTypeName() const
 
 void TestRenderer::display(DisplayContext *pdc)
 {
-    // MB_DPRINTLN("TestRenderer %p(%d) display()", this, getUID());
-    // printf("TestRenderer %p(%d) display()\n", this, getUID());
+    constexpr int VERTEX_NUMS = 1000;
 
-    double d = 5;
+    if (!m_pDrawData) {
+        m_pDrawData = new DrawArray();
+        m_pDrawData->alloc(VERTEX_NUMS);
+        initData();
+    }
 
-    pdc->setLighting(true);
-    // pdc->setLighting(false);
-
-    pdc->pushName(0);
-    pdc->startPolygon();
-    pdc->normal(Vector4D(0, 0, 1));
-
-    pdc->color(m_col1);
-    pdc->vertex(Vector4D(d, d, d));
-
-    // pdc->color(SolidColor("blue"));
-    pdc->color(SolidColor::createRGB(0, 0, 255));
-    pdc->vertex(Vector4D(-d, d, d));
-
-    // pdc->color(SolidColor("green"));
-    pdc->color(SolidColor::createRGB(0, 255, 0));
-    pdc->vertex(Vector4D(-d, -d, d));
-
-    // pdc->color(SolidColor("cyan"));
-    pdc->color(SolidColor::createRGB(0, 255, 255));
-    pdc->vertex(Vector4D(d, -d, d));
-    pdc->end();
-
-    pdc->loadName(1);
-    pdc->startPolygon();
-    pdc->normal(Vector4D(0, 0, -1));
-
-    pdc->color(1.0, 1.0, 0.0);
-    pdc->vertex(Vector4D(-d, d, -d));
-
-    pdc->color(1.0, 0.0, 0.0);
-    pdc->vertex(Vector4D(d, d, -d));
-
-    pdc->color(0.0, 0.0, 1.0);
-    pdc->vertex(Vector4D(d, -d, -d));
-
-    pdc->color(m_col1);
-    pdc->vertex(Vector4D(-d, -d, -d));
-    pdc->end();
-
-    //
-
-    pdc->loadName(2);
-    pdc->startPolygon();
-    pdc->normal(Vector4D(1, 0, 0));
-
-    pdc->color(1.0, 0.0, 0.0);
-    pdc->vertex(Vector4D(d, d, d));
-
-    pdc->color(1.0, 1.0, 0.0);
-    pdc->vertex(Vector4D(d, -d, d));
-
-    pdc->color(m_col1);
-    pdc->vertex(Vector4D(d, -d, -d));
-
-    pdc->color(0.0, 0.0, 1.0);
-    pdc->vertex(Vector4D(d, d, -d));
-    pdc->end();
-
-    pdc->loadName(3);
-    pdc->startPolygon();
-    pdc->normal(Vector4D(-1, 0, 0));
-
-    pdc->color(1.0, 0.0, 0.0);
-    pdc->vertex(Vector4D(-d, d, -d));
-
-    pdc->color(m_col1);
-    pdc->vertex(Vector4D(-d, -d, -d));
-
-    pdc->color(1.0, 1.0, 0.0);
-    pdc->vertex(Vector4D(-d, -d, d));
-
-    pdc->color(0.0, 0.0, 1.0);
-    pdc->vertex(Vector4D(-d, d, d));
-    pdc->end();
-
-    //
-
-    pdc->loadName(4);
-    pdc->startPolygon();
-    pdc->normal(Vector4D(0, 1, 0));
-
-    pdc->color(m_col1);
-    pdc->vertex(Vector4D(d, d, d));
-
-    pdc->color(1.0, 1.0, 0.0);
-    pdc->vertex(Vector4D(d, d, -d));
-
-    pdc->color(1.0, 0.0, 0.0);
-    pdc->vertex(Vector4D(-d, d, -d));
-
-    pdc->color(0.0, 0.0, 1.0);
-    pdc->vertex(Vector4D(-d, d, d));
-    pdc->end();
-
-    pdc->loadName(5);
-    pdc->startPolygon();
-    pdc->normal(Vector4D(0, -1, 0));
-
-    pdc->color(1.0, 0.0, 0.0);
-    pdc->vertex(Vector4D(-d, -d, d));
-
-    pdc->color(1.0, 1.0, 0.0);
-    pdc->vertex(Vector4D(-d, -d, -d));
-
-    pdc->color(0.0, 0.0, 1.0);
-    pdc->vertex(Vector4D(d, -d, -d));
-
-    pdc->color(m_col1);
-    pdc->vertex(Vector4D(d, -d, d));
-    pdc->end();
-
-    pdc->popName();
+    updateData();
+    pdc->drawElem(*m_pDrawData);
 }
 
 // void TestRenderer::displayHit(DisplayContext *pdc)

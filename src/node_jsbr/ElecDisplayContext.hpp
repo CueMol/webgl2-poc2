@@ -23,6 +23,10 @@ public:
 
     void init(ElecView *pView);
 
+    virtual void drawElem(const gfx::AbstDrawElem &data);
+
+    //
+
     virtual bool setCurrent();
     virtual bool isCurrent() const;
     virtual bool isFile() const;
