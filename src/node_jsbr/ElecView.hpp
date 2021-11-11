@@ -5,10 +5,12 @@
 #include <qsys/Scene.hpp>
 #include <qsys/View.hpp>
 #include <qsys/qsys.hpp>
+#include <qlib/MatrixND.hpp>
 
 namespace node_jsbr {
 
 class ElecDisplayContext;
+using Matrix4F = qlib::MatrixND<4, float>;
 
 class ElecView : public qsys::View
 {
@@ -17,6 +19,10 @@ private:
 
     /// JS-side WebGL display manager
     Napi::ObjectReference m_peerObjRef;
+
+    Matrix4F m_modelMat, m_projMat;
+
+    Napi::ObjectReference m_modelArrayBuf, m_projArrayBuf;
 
 public:
     ElecView();
@@ -50,6 +56,9 @@ public:
     inline Napi::Object getPeerObj() {
         return m_peerObjRef.Value();
     }
+
+private:
+    void clear(const gfx::ColorPtr &col);
 };
 
 class ElecViewFactory : public qsys::ViewFactory

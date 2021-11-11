@@ -36,16 +36,9 @@ public:
     //     return m_hPO;
     // }
 
-    // inline void enable()
-    // {
-    //     use();
-    // }
+    void enable();
 
-    // inline void disable()
-    // {
-    //     // glUseProgramObjectARB(0);
-    //     glUseProgram(0);
-    // }
+    void disable();
 
     // inline GLint getUniformLocation(const char *name)
     // {

@@ -24,6 +24,15 @@ window.addEventListener("load", () => {
     canvas.addEventListener("mouseup", (event) => {
         console.log("canvas mouseup");
     });
+    const resizeObserver = new ResizeObserver(entries => {
+        for (const entry of entries) {
+            const rect = entry.contentRect;
+            // console.log("resize called", rect);
+            mgr.resized(rect);
+            break;
+        }
+    });
+    resizeObserver.observe(document.getElementById("canvas_area"));
     
     /////
 

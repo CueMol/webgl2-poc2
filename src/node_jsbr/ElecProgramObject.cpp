@@ -54,4 +54,22 @@ qlib::LString ElecProgramObject::loadFile(const qlib::LString &filename)
     return source;
 }
 
+void ElecProgramObject::enable()
+{
+    auto peer = m_pView->getPeerObj();
+    auto env = peer.Env();
+    auto method = peer.Get("enableShader").As<Napi::Function>();
+    method.Call(peer, {Napi::Number::New(env, m_progObjID)});
+    // printf("ElecProgramObject::enable %d OK\n", m_progObjID);
+}
+
+void ElecProgramObject::disable()
+{
+    auto peer = m_pView->getPeerObj();
+    auto env = peer.Env();
+    auto method = peer.Get("disableShader").As<Napi::Function>();
+    method.Call(peer, {});
+    // printf("ElecProgramObject::disable %d OK\n", m_progObjID);
+}
+
 }  // namespace node_jsbr

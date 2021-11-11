@@ -18,8 +18,7 @@ TestRenderer::TestRenderer() : Renderer(), m_pDrawData(nullptr)
 
 TestRenderer::~TestRenderer()
 {
-    if (m_pDrawData)
-        delete m_pDrawData;
+    if (m_pDrawData) delete m_pDrawData;
     LOG_DPRINTLN("TestRenderer(%p) destructed\n", this);
 }
 
@@ -37,10 +36,13 @@ const char *TestRenderer::getTypeName() const
 
 void TestRenderer::display(DisplayContext *pdc)
 {
-    constexpr int VERTEX_NUMS = 1000;
-
     if (!m_pDrawData) {
         m_pDrawData = new DrawArray();
+        m_pDrawData->setAttrSize(2);
+        m_pDrawData->setAttrInfo(0, "vertexPosition", 3, qlib::type_consts::QTC_FLOAT32,
+                                 offsetof(DrawAttr, x));
+        m_pDrawData->setAttrInfo(1, "color", 4, qlib::type_consts::QTC_FLOAT32,
+                                 offsetof(DrawAttr, r));
         m_pDrawData->alloc(VERTEX_NUMS);
         initData();
     }

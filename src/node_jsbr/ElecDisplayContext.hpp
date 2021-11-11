@@ -17,6 +17,9 @@ private:
     /// Default program object (shader)
     ElecProgramObject *m_pDefPO;
 
+    /// matrix stack
+    std::deque<qlib::Matrix4D> m_matstack;
+
 public:
     ElecDisplayContext() : m_pView(nullptr), m_pDefPO(nullptr) {}
     virtual ~ElecDisplayContext();
@@ -24,6 +27,10 @@ public:
     void init(ElecView *pView);
 
     virtual void drawElem(const gfx::AbstDrawElem &data);
+
+    virtual void startSection(const qlib::LString &section_name);
+
+    virtual void endSection();
 
     //
 
@@ -51,6 +58,27 @@ public:
     virtual void startQuadStrip();
     virtual void startQuads();
     virtual void end();
+
+    //
+
+    void clearMatStack()
+    {
+        m_matstack.erase(m_matstack.begin(), m_matstack.end());
+    }
+
+    void xform_vec(Vector4D &v) const
+    {
+        const Matrix4D &mtop = m_matstack.front();
+        v.w() = 1.0;
+        mtop.xform4D(v);
+    }
+
+    void xform_norm(Vector4D &v) const
+    {
+        const Matrix4D &mtop = m_matstack.front();
+        v.w() = 0.0;
+        mtop.xform4D(v);
+    }
 };
 
 }  // namespace node_jsbr

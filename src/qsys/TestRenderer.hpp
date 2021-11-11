@@ -92,7 +92,7 @@ public:
 
     inline void initData()
     {
-        const size_t elem_size = m_pDrawData->getElemSize();
+        const size_t elem_size = m_pDrawData->getElemSize() / sizeof(float);
         float *pbuf =
             const_cast<float *>(static_cast<const float *>(m_pDrawData->getData()));
         for (size_t i = 0; i < VERTEX_NUMS / 6; ++i) {
