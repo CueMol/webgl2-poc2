@@ -107,7 +107,7 @@ void ElecDisplayContext::drawElem(const gfx::AbstDrawElem &data)
         data.setVBO(pImpl);
     }
     pImpl->drawBuffer(m_pView);
-    printf("ElecDisplayContext::drawElem\n");
+    // printf("ElecDisplayContext::drawElem\n");
 }
 
 void ElecDisplayContext::startSection(const qlib::LString &section_name)

@@ -88,7 +88,7 @@ module.exports = class Manager {
         const program = gl.createProgram();
 
         for (const [key, value] of Object.entries(data)) {
-            console.log(key, value);
+            // console.log(key, value);
             let shader_type = this.toShaderTypeID(key);
             const shader = gl.createShader(shader_type);
             gl.shaderSource(shader, value);
@@ -173,16 +173,14 @@ module.exports = class Manager {
         gl.bindBuffer(gl.UNIFORM_BUFFER, null);
     }
 
-    resized(rect) {
-        // console.log(rect);
-        this._view.sizeChanged(rect.width, rect.height);
+    resized(width, height) {
+        console.log(width, height);
+        this._view.sizeChanged(width, height);
     }
 
     createBuffer(nsize, num_elems, elem_info_str) {
         const gl = this._context;
-        console.log("elem info:", elem_info_str);
         let elem_info = JSON.parse(elem_info_str);
-        console.log("elem info:", elem_info);
 
         let prog_id = 0;
         let program = this._prog_data[prog_id];
@@ -220,7 +218,6 @@ module.exports = class Manager {
         gl.bindBuffer(gl.ARRAY_BUFFER, obj[1]);
         gl.bufferSubData(gl.ARRAY_BUFFER, 0, array_buf);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
-        console.log("send buffer ok", id);
 
         gl.bindVertexArray(obj[0]);
         gl.drawArrays(gl.TRIANGLES, 0, nelems);

@@ -41,17 +41,10 @@ void ElecView::setUpModelMat(int nid)
 
     auto peer = m_peerObjRef.Value();
     auto env = peer.Env();
-
-    // auto array_buf =
-    //     Napi::ArrayBuffer::New(env, &m_modelMat.ai(1), buf_size * sizeof(float),
-    //                            [](Napi::Env, void *finalizeData) {
-    //                                printf("finalizer called for %p\n", finalizeData);
-    //                                // delete [] static_cast<float*>(finalizeData);
-    //                            });
     auto method = peer.Get("setUpModelMat").As<Napi::Function>();
     method.Call(peer, {m_modelArrayBuf.Value()});
 
-    printf("setUpModelMat OK\n");
+    // printf("setUpModelMat OK\n");
 }
 
 /// Setup projection matrix (View interface)
@@ -134,18 +127,13 @@ void ElecView::setUpProjMat(int cx, int cy)
     constexpr size_t buf_size = 4 * 4;
     auto peer = m_peerObjRef.Value();
     auto env = peer.Env();
-    // auto array_buf = Napi::ArrayBuffer::New(
-    //     env, pbuf, buf_size * sizeof(float), [](Napi::Env, void *finalizeData) {
-    //         printf("finalizer called for %p\n", finalizeData);
-    //         // delete [] static_cast<float*>(finalizeData);
-    //     });
     auto method = peer.Get("setUpProjMat").As<Napi::Function>();
     method.Call(peer,
                 {Napi::Number::New(env, bcx), Napi::Number::New(env, bcy), m_projArrayBuf.Value()});
 
     resetProjChgFlag();
 
-    printf("setUpProjMat OK\n");
+    // printf("setUpProjMat OK\n");
 }
 
 /// Draw current scene
