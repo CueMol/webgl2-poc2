@@ -18,5 +18,6 @@ runtime_class TestRenderer extends Renderer
   property object<AbstractColor$> color1 => m_col1;
   default color1 = gfx::SolidColor::createRGB(0.0, 1.0, 1.0);
 
+  property boolean update => redirect(isUpdate, setUpdate);
 };
 

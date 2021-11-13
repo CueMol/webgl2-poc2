@@ -12,7 +12,9 @@
 #include <qlib/qlib.hpp>
 #include <qsys/qsys.hpp>
 
+#include "ElecTimerImpl.hpp"
 #include "ElecView.hpp"
+#include "node_jsbr.hpp"
 #include "wrapper.hpp"
 
 namespace node_jsbr {
@@ -60,9 +62,14 @@ Napi::Value initCueMol(const Napi::CallbackInfo &info)
 
     try {
         qlib::init();
-        gfx::init();
+        // gfx::init();
         qsys::init(config.c_str());
+        init();
         registerViewFactory();
+
+        // setup timer
+        qlib::EventManager::getInstance()->initTimer(new ElecTimerImpl);
+
     } catch (const qlib::LException &e) {
         printf("XXXXX\n");
         // LOG_DPRINTLN("Init> Caught exception <%s>", typeid(e).name());

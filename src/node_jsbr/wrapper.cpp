@@ -181,7 +181,7 @@ Napi::Value Wrapper::invokeMethod(const Napi::CallbackInfo &info)
     auto methodname = info[0].As<Napi::String>().Utf8Value();
 
     if (!pScObj->hasMethod(methodname)) {
-        auto msg = LString::format("InvokeMethod: method \"%s\") not found.",
+        auto msg = LString::format("InvokeMethod: method \"%s\" not found.",
                                    methodname.c_str());
         Napi::Error::New(env, msg.c_str()).ThrowAsJavaScriptException();
         return env.Null();

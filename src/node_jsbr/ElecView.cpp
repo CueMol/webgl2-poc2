@@ -128,8 +128,8 @@ void ElecView::setUpProjMat(int cx, int cy)
     auto peer = m_peerObjRef.Value();
     auto env = peer.Env();
     auto method = peer.Get("setUpProjMat").As<Napi::Function>();
-    method.Call(peer,
-                {Napi::Number::New(env, bcx), Napi::Number::New(env, bcy), m_projArrayBuf.Value()});
+    method.Call(peer, {Napi::Number::New(env, bcx), Napi::Number::New(env, bcy),
+                       m_projArrayBuf.Value()});
 
     resetProjChgFlag();
 
@@ -199,6 +199,86 @@ void ElecView::clear(const gfx::ColorPtr &col)
     method.Call(peer,
                 {Napi::Number::New(env, col->fr()), Napi::Number::New(env, col->fg()),
                  Napi::Number::New(env, col->fb())});
+}
+
+void ElecView::onMouseDown(double clientX, double clientY, double screenX,
+                           double screenY, int modif)
+{
+    // printf("onMouseDown (%f, %f) (%f, %f) %x\n", clientX, clientY, screenX, screenY, modif);
+    qsys::InDevEvent ev;
+    setupInDevEvent(clientX, clientY, screenX, screenY, modif, ev);
+    dispatchMouseEvent(DME_MOUSE_DOWN, ev);
+}
+
+void ElecView::onMouseUp(double clientX, double clientY, double screenX, double screenY,
+                         int modif)
+{
+    // printf("onMouseUp (%f, %f) (%f, %f) %x\n", clientX, clientY, screenX, screenY,modif);
+    qsys::InDevEvent ev;
+    setupInDevEvent(clientX, clientY, screenX, screenY, modif, ev);
+    dispatchMouseEvent(DME_MOUSE_UP, ev);
+}
+
+void ElecView::onMouseMove(double clientX, double clientY, double screenX,
+                           double screenY, int modif)
+{
+    // printf("onMouseMove (%f, %f) (%f, %f) %x\n", clientX, clientY, screenX, screenY,modif);
+    qsys::InDevEvent ev;
+    setupInDevEvent(clientX, clientY, screenX, screenY, modif, ev);
+    dispatchMouseEvent(DME_MOUSE_MOVE, ev);
+}
+
+void ElecView::setupInDevEvent(double clientX, double clientY, double screenX,
+                               double screenY, int amodif, qsys::InDevEvent &ev)
+{
+    ev.setX(int(clientX));
+    ev.setY(int(clientY));
+
+    ev.setRootX(int(screenX));
+    ev.setRootY(int(screenY));
+
+    int modif = 0;
+
+    if (amodif & 32) modif |= qsys::InDevEvent::INDEV_CTRL;
+    if (amodif & 64) modif |= qsys::InDevEvent::INDEV_SHIFT;
+    if (amodif & 1) modif |= qsys::InDevEvent::INDEV_LBTN;
+    if (amodif & 2) modif |= qsys::InDevEvent::INDEV_RBTN;
+    if (amodif & 4) modif |= qsys::InDevEvent::INDEV_MBTN;
+
+    ev.setModifier(modif);
+}
+
+void ElecView::dispatchMouseEvent(int nType, qsys::InDevEvent &ev)
+{
+    switch (nType) {
+            // mouse down event
+        case DME_MOUSE_DOWN:
+            m_meh.buttonDown(ev);
+            break;
+
+            // mouse move/dragging event
+        case DME_MOUSE_MOVE:
+            if (!m_meh.move(ev)) return;  // skip event invokation
+            break;
+
+            // mouse up event
+        case DME_MOUSE_UP:
+            if (!m_meh.buttonUp(ev)) {
+                return;  // skip event invokation
+            }
+            break;
+
+        case DME_WHEEL:
+            // wheel events
+            break;
+
+            // should not be happen
+        default:
+            MB_DPRINTLN("unknown nType %d", nType);
+            return;
+    }
+
+    fireInDevEvent(ev);
 }
 
 void registerViewFactory()

@@ -22,39 +22,19 @@ function adjustCanvasSize(placeholder, canvas, devicePixelRatio) {
 window.addEventListener("load", () => {
     console.log("onLoad() called!!");
 
-    // gfx_render.initApp();
-    // gfx_render.AppMain.init();
-    // app = gfx_render.AppMain.getInstance();
-    // console.log("app: ", app.toString());
-    
     let canvas = document.getElementById('canvas_area');
     let placeholder = document.getElementById('placeholder');
     let devicePixelRatio = window.devicePixelRatio || 1;
 
     console.log("devicePixelRatio", devicePixelRatio);
     adjustCanvasSize(placeholder, canvas, devicePixelRatio);
-    // canvas.width = canvas.clientWidth * devicePixelRatio;
-    // canvas.height = canvas.clientHeight * devicePixelRatio;
-    // console.log("client w, h", canvas.clientWidth,canvas.clientHeight);
-    // console.log("w, h", canvas.width,canvas.height);
 
     mgr.bindCanvas(canvas);
-    canvas.addEventListener("mousedown", (event) => {
-        console.log("canvas mousedown");
-    });
-    canvas.addEventListener("mouseup", (event) => {
-        console.log("canvas mouseup");
-    });
-
     const resizeObserver = new ResizeObserver(entries => {
         let [w, h] = adjustCanvasSize(placeholder, canvas, devicePixelRatio);
-        // let rect = placeholder.getBoundingClientRect();
-        // let w = rect.width * devicePixelRatio;
-        // let h = rect.height * devicePixelRatio;
-        // canvas.style.width = rect.width + "px";
-        // canvas.style.height = rect.height + "px";
-        // canvas.width = w;
-        // canvas.height = h;
+        rect = placeholder.getBoundingClientRect();
+        w = rect.width;
+        h = rect.height;
         mgr.resized(w, h);
         mgr.updateDisplay();
     });
@@ -65,6 +45,7 @@ window.addEventListener("load", () => {
     elem = document.getElementById("update_button");
     elem.addEventListener("click", (event) => {
 	    console.log("Update button click() called!!");
+        mgr.rend.update = !mgr.rend.update;
     });
 
     // webgl.init(canvas);

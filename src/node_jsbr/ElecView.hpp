@@ -2,10 +2,12 @@
 
 #include <napi.h>
 
+#include <qlib/MatrixND.hpp>
 #include <qsys/Scene.hpp>
 #include <qsys/View.hpp>
 #include <qsys/qsys.hpp>
-#include <qlib/MatrixND.hpp>
+
+#include "MouseEventHandler.hpp"
 
 namespace node_jsbr {
 
@@ -14,6 +16,8 @@ using Matrix4F = qlib::MatrixND<4, float>;
 
 class ElecView : public qsys::View
 {
+    MC_SCRIPTABLE;
+
 private:
     ElecDisplayContext *m_pCtxt;
 
@@ -23,6 +27,8 @@ private:
     Matrix4F m_modelMat, m_projMat;
 
     Napi::ObjectReference m_modelArrayBuf, m_projArrayBuf;
+
+    MouseEventHandler m_meh;
 
 public:
     ElecView();
@@ -49,16 +55,34 @@ public:
 
     virtual gfx::DisplayContext *getDisplayContext();
 
+    void onMouseDown(double clientX, double clientY, double screenX, double screenY,
+                     int modif);
+    void onMouseUp(double clientX, double clientY, double screenX, double screenY,
+                   int modif);
+    void onMouseMove(double clientX, double clientY, double screenX, double screenY,
+                     int modif);
+
     //////////
 
     void bindPeer(Napi::Object peer);
 
-    inline Napi::Object getPeerObj() {
+    inline Napi::Object getPeerObj()
+    {
         return m_peerObjRef.Value();
     }
 
 private:
     void clear(const gfx::ColorPtr &col);
+
+    static const int DME_MOUSE_DOWN = 0;
+    static const int DME_MOUSE_MOVE = 1;
+    static const int DME_MOUSE_UP = 2;
+    static const int DME_WHEEL = 3;
+    static const int DME_DBCHK_TIMEUP = 4;
+
+    void setupInDevEvent(double clientX, double clientY, double screenX, double screenY,
+                         int modif, qsys::InDevEvent &ev);
+    void dispatchMouseEvent(int nType, qsys::InDevEvent &ev);
 };
 
 class ElecViewFactory : public qsys::ViewFactory

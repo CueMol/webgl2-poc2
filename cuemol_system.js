@@ -31,6 +31,7 @@ module.exports = class Manager {
 
         let rend = obj.createRenderer("test");
         console.log(`Renderer created UID: ${rend.getUID()}, name: ${rend.name}`);
+        this.rend = rend;
     }
 
     test() {
@@ -57,15 +58,58 @@ module.exports = class Manager {
         console.log(`color: ${xx}`);
     }
     
+    makeModif(event) {
+        let modif = event.buttons;
+        if (event.ctrlKey) {
+            modif += 32;
+        }
+        if (event.shiftKey) {
+            modif += 64;
+        }
+        return modif;
+    }
+
     bindCanvas(canvas) {
         this._canvas = canvas;
         this._context = canvas.getContext('webgl2');
+        let gl = this._context;
+        gl.enable(gl.DEPTH_TEST);
+        gl.depthFunc(gl.LEQUAL);
+        gl.enable(gl.CULL_FACE);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+        gl.enable(gl.BLEND);
 
+        if (window.devicePixelRatio) {
+            this._view.setSclFac(window.devicePixelRatio, window.devicePixelRatio);
+        }
         _internal.bindPeer(this._view._wrapped, this);
+
+        canvas.addEventListener("mousedown", (event) => {
+            let modif = this.makeModif(event);
+            // console.log("canvas mousedown");
+            this._view.onMouseDown(event.clientX, event.clientY,
+                                   event.screenX, event.screenY,
+                                   modif);
+        });
+        canvas.addEventListener("mouseup", (event) => {
+            let modif = this.makeModif(event);
+            // console.log("canvas mouseup");
+            this._view.onMouseUp(event.clientX, event.clientY,
+                                   event.screenX, event.screenY,
+                                   modif);
+        });
+        canvas.addEventListener("mousemove", (event) => {
+            let modif = this.makeModif(event);
+            // console.log("canvas mousemove");
+            this._view.onMouseMove(event.clientX, event.clientY,
+                                   event.screenX, event.screenY,
+                                   modif);
+        });
     }
 
     updateDisplay() {
-        this._view.rotateView(1.0 * Math.PI / 180, 0, 0);
+        // this._view.rotateView(1.0 * Math.PI / 180, 0, 0);
+        this._view.invalidate();
         this._view.checkAndUpdate();
     }
 
@@ -211,14 +255,15 @@ module.exports = class Manager {
         return new_id;
     }
 
-    drawBuffer(id, nelems, array_buf) {
+    drawBuffer(id, nelems, array_buf, isUpdated) {
         const gl = this._context;
         const obj = this._draw_data[id];
-        // Transfer VBO to GPU
-        gl.bindBuffer(gl.ARRAY_BUFFER, obj[1]);
-        gl.bufferSubData(gl.ARRAY_BUFFER, 0, array_buf);
-        gl.bindBuffer(gl.ARRAY_BUFFER, null);
-
+        if (isUpdated) {
+            // Transfer VBO to GPU
+            gl.bindBuffer(gl.ARRAY_BUFFER, obj[1]);
+            gl.bufferSubData(gl.ARRAY_BUFFER, 0, array_buf);
+            gl.bindBuffer(gl.ARRAY_BUFFER, null);
+        }
         gl.bindVertexArray(obj[0]);
         gl.drawArrays(gl.TRIANGLES, 0, nelems);
         gl.bindVertexArray(null);

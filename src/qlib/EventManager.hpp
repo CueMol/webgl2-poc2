@@ -7,102 +7,101 @@
 #ifndef QLIB_EVENT_MANAGER_HPP_
 #define QLIB_EVENT_MANAGER_HPP_
 
-#include "qlib.hpp"
-
-#include "SingletonBase.hpp"
 #include "LTimeValue.hpp"
+#include "SingletonBase.hpp"
 #include "TimerEvent.hpp"
+#include "qlib.hpp"
 
 namespace qlib {
 
-  class LEvent;
+class LEvent;
 
-  /// Base class of event casters implementing lock
-  class QLIB_API LEventCasterBase
-  {
-  public:
-
+/// Base class of event casters implementing lock
+class QLIB_API LEventCasterBase
+{
+public:
     LEventCasterBase() : m_fLock(false) {}
 
-    virtual void fireEvent(LEvent *pEvent) =0;
+    virtual void fireEvent(LEvent *pEvent) = 0;
 
     /////////
     // Lock
 
-    void lock() const {
-      m_fLock = true;
+    void lock() const
+    {
+        m_fLock = true;
     }
 
-    void unlock() const {
-      m_fLock = false;
+    void unlock() const
+    {
+        m_fLock = false;
     }
 
-    bool isLocked() const {
-      return m_fLock;
+    bool isLocked() const
+    {
+        return m_fLock;
     }
 
-  protected:
+protected:
     mutable bool m_fLock;
+};
 
-  };
-
-  /// Automatic event cast lock object
-  class AutoEventCastLock
-  {
-  private:
+/// Automatic event cast lock object
+class AutoEventCastLock
+{
+private:
     const LEventCasterBase *m_pCaster;
 
-  public:
-    AutoEventCastLock(const LEventCasterBase *pCaster)
-         : m_pCaster(pCaster)
+public:
+    AutoEventCastLock(const LEventCasterBase *pCaster) : m_pCaster(pCaster)
     {
-      m_pCaster->lock();
+        m_pCaster->lock();
     }
 
     ~AutoEventCastLock()
     {
-      m_pCaster->unlock();
+        m_pCaster->unlock();
     }
-  };
+};
 
-  ////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////
 
-  /// Timer implementation interface
-  class QLIB_API TimerImpl
-  {
-  public:
+/// Timer implementation interface
+class QLIB_API TimerImpl
+{
+public:
     TimerImpl() {}
     virtual ~TimerImpl();
     virtual time_value getCurrentTime();
-    virtual void start(time_value period) =0;
-    virtual void stop() =0;
-  };
+    virtual void start(time_value period) = 0;
+    virtual void stop() = 0;
+};
 
-  /// Idle task interface
-  class QLIB_API IdleTask
-  {
-  public:
+/// Idle task interface
+class QLIB_API IdleTask
+{
+public:
     IdleTask() {}
     virtual ~IdleTask();
-    virtual void doIdleTask() =0;
-  };
+    virtual void doIdleTask() = 0;
+};
 
-  /// Timer entry data structure
-  struct TimerTuple {
+/// Timer entry data structure
+struct TimerTuple
+{
     time_value start;
     time_value end;
     TimerListener *pobj;
-  };
+};
 
-  
-  struct EMThreadImpl;
+struct EMThreadImpl;
 
-  ///
-  /// Event/Timer manager
-  ///
-  class QLIB_API EventManager : public SingletonBase<EventManager>
-  {
-  private:
+///
+/// Event/Timer manager
+///
+class QLIB_API EventManager : public SingletonBase<EventManager>
+{
+private:
     EMThreadImpl *m_pthr;
 
     /// Event entry data structure
@@ -125,9 +124,9 @@ namespace qlib {
     ///////////////////////
 
     /// Idle task list
-    std::list<IdleTask*> m_idleTasks;
+    std::list<IdleTask *> m_idleTasks;
 
-  public:
+public:
     EventManager();
     virtual ~EventManager();
 
@@ -143,8 +142,7 @@ namespace qlib {
     ///  This method should be called periodically, when the main thread is idle.
     void messageLoop();
 
-  public:
-    
+public:
     void initTimer(TimerImpl *pimpl);
     void finiTimer();
 
@@ -153,31 +151,30 @@ namespace qlib {
 
     void checkTimerQueue();
 
-    inline time_value getCurrentTime() {
-      return m_pImpl->getCurrentTime();
+    inline time_value getCurrentTime()
+    {
+        return m_pImpl->getCurrentTime();
     }
 
-    inline static time_value sGetCurrentTime() {
-      return getInstance()->getCurrentTime();
+    inline static time_value sGetCurrentTime()
+    {
+        return getInstance()->getCurrentTime();
     }
-    
-    void addIdleTask(IdleTask *pTask, bool bLast=false) {
-      if (bLast) {
-        m_idleTasks.push_back(pTask);
-      }
-      else {
-        m_idleTasks.push_front(pTask);
-      }
+
+    void addIdleTask(IdleTask *pTask, bool bLast = false)
+    {
+        if (bLast) {
+            m_idleTasks.push_back(pTask);
+        } else {
+            m_idleTasks.push_front(pTask);
+        }
     }
 
     void performIdleTasks();
+};
 
-  };
-
-}
+}  // namespace qlib
 
 SINGLETON_BASE_DECL(qlib::EventManager);
 
 #endif
-
-

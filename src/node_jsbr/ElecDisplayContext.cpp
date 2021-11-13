@@ -76,14 +76,15 @@ public:
         m_arrayBufRef = Napi::Persistent(array_buf);
     }
 
-    void drawBuffer(ElecView *pView)
+    void drawBuffer(ElecView *pView, bool isUpdated)
     {
         auto peer = pView->getPeerObj();
         auto env = peer.Env();
 
         auto method = peer.Get("drawBuffer").As<Napi::Function>();
-        method.Call(peer, {Napi::Number::New(env, m_nBufID),
-                           Napi::Number::New(env, m_nElems), m_arrayBufRef.Value()});
+        method.Call(peer,
+                    {Napi::Number::New(env, m_nBufID), Napi::Number::New(env, m_nElems),
+                     m_arrayBufRef.Value(), Napi::Boolean::New(env, isUpdated)});
     }
 
     virtual ~ElecVBOImpl()
@@ -95,6 +96,7 @@ public:
             return;
         }
         // auto env = getEnv(pView.get());
+        // TODO: impl
     }
 };
 
@@ -106,8 +108,9 @@ void ElecDisplayContext::drawElem(const gfx::AbstDrawElem &data)
         pImpl = new ElecVBOImpl(m_pView, *pda);
         data.setVBO(pImpl);
     }
-    pImpl->drawBuffer(m_pView);
+    pImpl->drawBuffer(m_pView, data.isUpdated());
     // printf("ElecDisplayContext::drawElem\n");
+    data.setUpdated(false);
 }
 
 void ElecDisplayContext::startSection(const qlib::LString &section_name)

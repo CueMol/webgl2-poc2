@@ -24,7 +24,6 @@ class QSYS_API TestRenderer : public Renderer
 private:
     typedef qsys::Renderer super_t;
 
-public:
     struct DrawAttr
     {
         float x, y, z;
@@ -34,6 +33,10 @@ public:
     using DrawArray = gfx::DrawAttrArray<DrawAttr>;
 
     DrawArray *m_pDrawData;
+
+    bool m_bUpdate;
+
+public:
 
     gfx::ColorPtr m_col1;
 
@@ -65,7 +68,7 @@ public:
     // virtual void displayHit(DisplayContext *pdc);
     // virtual LString interpHit(const gfx::RawHitData &rhit);
 
-    static constexpr int VERTEX_NUMS = 6 * 1000;  // * 1000;
+    static constexpr int VERTEX_NUMS = 6 * 10000;  // * 1000;
     static constexpr float scl = 1.0f;
     static constexpr float tri_size = 10.0;
     static constexpr float vertices_orig[] = {
@@ -104,6 +107,7 @@ public:
                 // }
             }
         }
+        m_pDrawData->setUpdated(true);
     }
 
     inline void updateData()
@@ -122,7 +126,11 @@ public:
             // m_pDrawData->at(i).a =
             //     clamp(0, 1, randomUniform() * 0.1 + m_pDrawData->at(i).a);
         }
+        m_pDrawData->setUpdated(true);
     }
+
+    inline void setUpdate(bool b) { m_bUpdate = b; }
+    inline bool isUpdate() const { return m_bUpdate; }
 };
 
 }  // namespace qsys

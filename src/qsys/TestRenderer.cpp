@@ -11,7 +11,7 @@ using namespace qsys;
 using gfx::DisplayContext;
 using gfx::SolidColor;
 
-TestRenderer::TestRenderer() : Renderer(), m_pDrawData(nullptr)
+TestRenderer::TestRenderer() : Renderer(), m_pDrawData(nullptr), m_bUpdate(false)
 {
     resetAllProps();
 }
@@ -47,7 +47,8 @@ void TestRenderer::display(DisplayContext *pdc)
         initData();
     }
 
-    updateData();
+    if (m_bUpdate)
+        updateData();
     pdc->drawElem(*m_pDrawData);
 }
 
