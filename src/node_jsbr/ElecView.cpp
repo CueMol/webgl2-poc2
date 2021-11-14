@@ -154,7 +154,14 @@ void ElecView::drawScene()
     gfx::ColorPtr pBgCol = pScene->getBgColor();
     clear(pBgCol);
 
-    pScene->display(pdc);
+    try {
+        pScene->display(pdc);
+    } catch (const std::exception &e) {
+        printf("uncaught exception %s\n", e.what());
+    } catch (...) {
+        printf("uncaught exception!!!\n");
+        throw;
+    }
 }
 
 gfx::DisplayContext *ElecView::getDisplayContext()

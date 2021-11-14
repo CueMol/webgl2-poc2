@@ -36,6 +36,7 @@
 #include "command/CmdMgr.qif"
 
 #include "TestRenderer.qif"
+#include "TestDLRenderer.qif"
 
 module qsys
 {
@@ -76,10 +77,7 @@ module qsys
 
   SceneExporter;
   TestRenderer;
-// #if !defined(QM_BUILD_LW)
-//  ImgSceneExporter;
-//  PngSceneExporter;
-// #endif
+  TestDLRenderer;
 
 };
 

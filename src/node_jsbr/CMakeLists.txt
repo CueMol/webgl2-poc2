@@ -26,6 +26,7 @@ SET(NODE_JSBR_SRCS
   wrapper.cpp
   ElecView.cpp
   ElecDisplayContext.cpp
+  ElecDisplayList.cpp
   ElecProgramObject.cpp
   MouseEventHandler.cpp
   ${CMAKE_JS_SRC}

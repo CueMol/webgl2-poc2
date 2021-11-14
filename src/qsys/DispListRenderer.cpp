@@ -7,37 +7,33 @@
 #include <common.h>
 
 #include "DispListRenderer.hpp"
-#include "Scene.hpp"
+
 #include <gfx/DisplayContext.hpp>
+
+#include "Scene.hpp"
 
 using namespace qsys;
 using gfx::DisplayContext;
 
-DispListRenderer::DispListRenderer()
-  : super_t(), m_dlcache()
+DispListRenderer::DispListRenderer() : super_t(), m_dlcache() {}
+
+DispListRenderer::DispListRenderer(const DispListRenderer &r) : super_t(r), m_dlcache()
 {
 }
 
-DispListRenderer::DispListRenderer(const DispListRenderer &r)
-     : super_t(r), m_dlcache()
-{
-}
-
-DispListRenderer::~DispListRenderer()
-{
-}
+DispListRenderer::~DispListRenderer() {}
 
 //////////
 
 void DispListRenderer::display(DisplayContext *pdc)
 {
-  m_dlcache.display(pdc, this);
+    m_dlcache.display(pdc, this);
 }
 
 void DispListRenderer::invalidateDisplayCache()
 {
-  m_dlcache.invalidate();
-  super_t::invalidateDisplayCache();
+    m_dlcache.invalidate();
+    super_t::invalidateDisplayCache();
 }
 
 ////////////////////////////
@@ -46,12 +42,11 @@ void DispListRenderer::invalidateDisplayCache()
 
 void DispListRenderer::displayHit(DisplayContext *pdc)
 {
-  m_dlcache.displayHit(pdc, this);
+    m_dlcache.displayHit(pdc, this);
 }
 
 void DispListRenderer::invalidateHittestCache()
 {
-  m_dlcache.invalidateHit();
-  super_t::invalidateHittestCache();
+    m_dlcache.invalidateHit();
+    super_t::invalidateHittestCache();
 }
-

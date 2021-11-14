@@ -6,29 +6,28 @@
 #ifndef QSYS_DISPCACHE_RENDERER_HPP_INCLUDE_
 #define QSYS_DISPCACHE_RENDERER_HPP_INCLUDE_
 
-#include "qsys.hpp"
 #include "Renderer.hpp"
+#include "qsys.hpp"
 
 namespace gfx {
-  class DisplayContext;
+class DisplayContext;
 }
 
 namespace qsys {
 
-  using gfx::DisplayContext;
+using gfx::DisplayContext;
 
-  ///
-  ///  Adaptor class for renderers with display cache support
-  ///
-  class QSYS_API DispCacheRenderer : public Renderer
-  {
+///
+///  Adaptor class for renderers with display cache support
+///
+class QSYS_API DispCacheRenderer : public Renderer
+{
     // MC_SCRIPTABLE;
 
-  private:
+private:
     typedef Renderer super_t;
 
-  public:
-
+public:
     DispCacheRenderer();
     DispCacheRenderer(const DispCacheRenderer &r);
     virtual ~DispCacheRenderer();
@@ -42,7 +41,7 @@ namespace qsys {
     // DispCacheRenderer rendering interface
 
     /// Render the display cache
-    virtual void render(DisplayContext *pdl) =0;
+    virtual void render(DisplayContext *pdl) = 0;
 
     /// Callback method before the cache creation
     virtual void preRender(DisplayContext *pdc);
@@ -69,39 +68,38 @@ namespace qsys {
 
     /// Style event listener
     virtual void styleChanged(StyleEvent &);
-    
+
     /// Scene event listener (for detecting color profile change)
     virtual void sceneChanged(SceneEvent &ev);
-    
-  private:
+
+private:
     bool m_bShaderAlpha;
 
-  public:
-    bool useShaderAlpha() const {
-      return m_bShaderAlpha;
+public:
+    bool useShaderAlpha() const
+    {
+        return m_bShaderAlpha;
     }
-  };
+};
 
-  //
-  //  Implementation of cache using display list
-  //
+//
+//  Implementation of cache using display list
+//
 
-  class QSYS_API DispListCacheImpl
-  {
-  private:
-
+class QSYS_API DispListCacheImpl
+{
+private:
     /// Display list for drawing
     DisplayContext *m_pdl;
 
     /// Display list for hittest
     DisplayContext *m_phl;
 
-  public:
-
+public:
     DispListCacheImpl();
     virtual ~DispListCacheImpl();
 
-    /// 
+    ///
     void display(DisplayContext *pdc, DispCacheRenderer *pOuter);
 
     /// Invalidate both display list and hittest display list
@@ -111,11 +109,8 @@ namespace qsys {
 
     /// Invalidate only the hittest display list
     void invalidateHit();
+};
 
-  };
-
-  
-}
+}  // namespace qsys
 
 #endif
-

@@ -18,6 +18,7 @@ private:
     ElecProgramObject *m_pDefPO;
 
     /// matrix stack
+    // TODO: remove?
     std::deque<qlib::Matrix4D> m_matstack;
 
 public:
@@ -31,6 +32,11 @@ public:
     virtual void startSection(const qlib::LString &section_name);
 
     virtual void endSection();
+
+    virtual gfx::DisplayContext *createDisplayList();
+    virtual bool canCreateDL() const;
+    virtual void callDisplayList(DisplayContext *pdl);
+    virtual bool isCompatibleDL(DisplayContext *pdl) const;
 
     //
 

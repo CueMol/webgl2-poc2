@@ -5,10 +5,12 @@
 #include <gfx/DrawAttrArray.hpp>
 #include <qsys/SceneManager.hpp>
 
+#include "ElecDisplayList.hpp"
 #include "ElecProgramObject.hpp"
 #include "ElecView.hpp"
 
 namespace node_jsbr {
+
 ElecDisplayContext::~ElecDisplayContext()
 {
     if (m_pDefPO) delete m_pDefPO;
@@ -17,6 +19,7 @@ ElecDisplayContext::~ElecDisplayContext()
 void ElecDisplayContext::init(ElecView *pView)
 {
     m_pView = pView;
+    setTargetView(pView);
 
     m_pDefPO = new ElecProgramObject(pView);
     qlib::MapTable<qlib::LString> file_names;
@@ -32,10 +35,13 @@ private:
     int m_nBufID;
     size_t m_nElems;
     Napi::ObjectReference m_arrayBufRef;
+    int m_nDrawMode;
 
 public:
     ElecVBOImpl(ElecView *pView, const gfx::AbstDrawAttrs &data)
-        : m_nViewID(pView->getUID()), m_nElems(data.getSize())
+        : m_nViewID(pView->getUID()),
+          m_nElems(data.getSize()),
+          m_nDrawMode(data.getDrawMode())
     {
         qlib::LString json_str;
         json_str += "[";
@@ -82,9 +88,10 @@ public:
         auto env = peer.Env();
 
         auto method = peer.Get("drawBuffer").As<Napi::Function>();
-        method.Call(peer,
-                    {Napi::Number::New(env, m_nBufID), Napi::Number::New(env, m_nElems),
-                     m_arrayBufRef.Value(), Napi::Boolean::New(env, isUpdated)});
+        method.Call(peer, {Napi::Number::New(env, m_nBufID),
+                           Napi::Number::New(env, m_nDrawMode),
+                           Napi::Number::New(env, m_nElems), m_arrayBufRef.Value(),
+                           Napi::Boolean::New(env, isUpdated)});
     }
 
     virtual ~ElecVBOImpl()
@@ -141,6 +148,44 @@ bool ElecDisplayContext::isFile() const
 {
     return false;
 }
+
+gfx::DisplayContext *ElecDisplayContext::createDisplayList()
+{
+    ElecDisplayList *pdl = MB_NEW ElecDisplayList();
+
+    // Targets the same view as this
+    pdl->setTargetView(getTargetView());
+
+    printf("createDisplayList OK\n");
+    return pdl;
+}
+
+bool ElecDisplayContext::canCreateDL() const
+{
+    return true;
+}
+
+bool ElecDisplayContext::isCompatibleDL(DisplayContext *pdl) const
+{
+    ElecDisplayList *psrc = dynamic_cast<ElecDisplayList *>(pdl);
+    if (psrc == nullptr) return false;
+    return true;
+}
+
+void ElecDisplayContext::callDisplayList(DisplayContext *pdl)
+{
+    printf("callDisplayList called\n");
+    ElecDisplayList *psrc = dynamic_cast<ElecDisplayList *>(pdl);
+    if (psrc == nullptr || !psrc->isValid()) return;
+
+    // Lines
+    auto *pLines = psrc->getLineArray();
+    if (pLines) drawElem(*pLines);
+
+    printf("callDisplayList OK\n");
+}
+
+//////////
 
 void ElecDisplayContext::vertex(const qlib::Vector4D &) {}
 void ElecDisplayContext::normal(const qlib::Vector4D &) {}

@@ -29,7 +29,8 @@ module.exports = class Manager {
         scene.addObject(obj);
         console.log(`Object created UID: ${obj.getUID()}, name: ${obj.name}`);
 
-        let rend = obj.createRenderer("test");
+        // let rend = obj.createRenderer("test");
+        let rend = obj.createRenderer("dltest");
         console.log(`Renderer created UID: ${rend.getUID()}, name: ${rend.name}`);
         this.rend = rend;
     }
@@ -255,7 +256,7 @@ module.exports = class Manager {
         return new_id;
     }
 
-    drawBuffer(id, nelems, array_buf, isUpdated) {
+    drawBuffer(id, nmode, nelems, array_buf, isUpdated) {
         const gl = this._context;
         const obj = this._draw_data[id];
         if (isUpdated) {
@@ -264,8 +265,17 @@ module.exports = class Manager {
             gl.bufferSubData(gl.ARRAY_BUFFER, 0, array_buf);
             gl.bindBuffer(gl.ARRAY_BUFFER, null);
         }
+
+        let nglmode = gl.TRIANGLES;
+        if (nmode == 4) {
+            nglmode = gl.LINES;
+        }
+        // else if (nmode == 7) {
+        //     nglmode
+        // }
+
         gl.bindVertexArray(obj[0]);
-        gl.drawArrays(gl.TRIANGLES, 0, nelems);
+        gl.drawArrays(nglmode, 0, nelems);
         gl.bindVertexArray(null);
     }
 }
