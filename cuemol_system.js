@@ -4,16 +4,14 @@ const wrapper_utils = require("./wrapper_utils");
 module.exports = class Manager {
     constructor() {
         // for program object
-        this._new_prog_id = 0;
-        this._prog_data = [];
+        this._prog_data = {};
 
         // common UBO info
         this._mvp_mat_loc = 0;
         this._mat_ubo = null;
 
         // for VBOs
-        this._new_draw_id = 0;
-        this._draw_data = [];
+        this._draw_data = {};
 
         _internal.initCueMol("xxx");
         let sceMgr = wrapper_utils.getService("SceneManager");
@@ -76,7 +74,7 @@ module.exports = class Manager {
         let gl = this._context;
         gl.enable(gl.DEPTH_TEST);
         gl.depthFunc(gl.LEQUAL);
-        gl.enable(gl.CULL_FACE);
+        gl.disable(gl.CULL_FACE);
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
         gl.enable(gl.BLEND);
 
@@ -127,9 +125,13 @@ module.exports = class Manager {
         }
     }
 
-    createShader(data) {
+    createShader(name, data) {
         const gl = this._context;
-
+        if (name in this._prog_data) {
+            // console.log(`name ${name} already exists`);
+            // return false;
+            return true;
+        }
         const program = gl.createProgram();
 
         for (const [key, value] of Object.entries(data)) {
@@ -143,7 +145,7 @@ module.exports = class Manager {
             if(!status) {
                 const info = gl.getShaderInfoLog(shader);
                 console.log(info);
-                return -1;
+                return false;
             }
 
             gl.attachShader(program, shader);
@@ -155,23 +157,29 @@ module.exports = class Manager {
         if(!status) {
             const info = gl.getProgramInfoLog(program);
             console.log(info);
-            return -1;
+            return false;
         }
 
         // setup common UBO entries
         let mvp_mat_index = gl.getUniformBlockIndex(program, 'mvp_matrix');
         gl.uniformBlockBinding(program, mvp_mat_index, this._mvp_mat_loc);
 
-        const new_id = this._new_prog_id
-        this._prog_data[new_id] = program;
-        this._new_prog_id ++;
-
-        return new_id;
+        this._prog_data[name] = program;
+        return true;
     }
 
-    enableShader(shader_id) {
+    deleteShader(shader_name) {
         const gl = this._context;
-        gl.useProgram(this._prog_data[shader_id]);
+        if (!name in this._prog_data) {
+            console.log(`name ${name} not defined`);
+            return false;
+        }
+        gl.deleteProgram(this._prog_data[shader_name]);
+    }
+
+    enableShader(shader_name) {
+        const gl = this._context;
+        gl.useProgram(this._prog_data[shader_name]);
     }
     disableShader() {
         const gl = this._context;
@@ -223,12 +231,17 @@ module.exports = class Manager {
         this._view.sizeChanged(width, height);
     }
 
-    createBuffer(nsize, num_elems, elem_info_str) {
+    createBuffer(name, nsize, num_elems, elem_info_str) {
+        if (name in this._draw_data) {
+            console.log(`name ${name} already exists`);
+            return false;
+        }
+
         const gl = this._context;
         let elem_info = JSON.parse(elem_info_str);
 
-        let prog_id = 0;
-        let program = this._prog_data[prog_id];
+        // let prog_id = 0;
+        // let program = this._prog_data[prog_id];
 
         // VAO
         let vao = gl.createVertexArray();
@@ -239,7 +252,8 @@ module.exports = class Manager {
 
         const stride = nsize / num_elems;
         elem_info.forEach((value) => {
-            let aloc = gl.getAttribLocation(program, value["name"]);
+            // let aloc = gl.getAttribLocation(program, value["name"]);
+            let aloc = value["nloc"];
             gl.enableVertexAttribArray(aloc);
             gl.vertexAttribPointer(aloc, value["nelems"], gl.FLOAT, false, stride, value["npos"]);
         });
@@ -247,13 +261,14 @@ module.exports = class Manager {
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
         gl.bindVertexArray(null);
 
-        const new_id = this._new_draw_id
-        this._draw_data[new_id] = [vao, vertexBuffer];
-        this._new_draw_id ++;
+        this._draw_data[name] = [vao, vertexBuffer];
 
-        console.log("create buffer OK, new_id=", new_id);
-        // console.log("buf=", this._draw_data[id]._buf);
-        return new_id;
+        // const new_id = this._new_draw_id
+        // this._draw_data[new_id] = [vao, vertexBuffer];
+        // this._new_draw_id ++;
+
+        console.log("create buffer OK, new_id=", name);
+        return true;
     }
 
     drawBuffer(id, nmode, nelems, array_buf, isUpdated) {
@@ -269,6 +284,7 @@ module.exports = class Manager {
         let nglmode = gl.TRIANGLES;
         if (nmode == 4) {
             nglmode = gl.LINES;
+            gl.lineWidth(5);
         }
         // else if (nmode == 7) {
         //     nglmode
@@ -277,5 +293,23 @@ module.exports = class Manager {
         gl.bindVertexArray(obj[0]);
         gl.drawArrays(nglmode, 0, nelems);
         gl.bindVertexArray(null);
+    }
+
+    deleteBuffer(id) {
+        const gl = this._context;
+
+        if (!id in this._draw_data)
+            return false;
+        const obj = this._draw_data[id];
+        if (obj === null)
+            return false;
+
+        delete this._draw_data[id];
+        // delete VBO
+        gl.deleteBuffer(obj[1]);
+        // delete VAO
+        gl.deleteVertexArray(obj[0]);
+
+        return true;
     }
 }

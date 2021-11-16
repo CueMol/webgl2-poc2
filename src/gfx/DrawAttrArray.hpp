@@ -18,8 +18,8 @@ class GFX_API AbstDrawAttrs : public AbstDrawElem
 private:
     struct AttrInfo
     {
-        // int nAttrLoc;
-        qlib::LString attrName;
+        int nAttrLoc;
+        // qlib::LString attrName;
         int nAttrElems;
         int iAttrType;
         int nStartPos;
@@ -39,17 +39,23 @@ public:
         return m_attrs.size();
     }
 
-    inline void setAttrInfo(size_t ind, const qlib::LString &name, int ae, int at, int pos)
+    // inline void setAttrInfo(size_t ind, const qlib::LString &name, int ae, int at, int pos)
+    inline void setAttrInfo(size_t ind, int al, int ae, int at, int pos)
     {
-        m_attrs[ind].attrName = name;
+        m_attrs[ind].nAttrLoc = al;
+        // m_attrs[ind].attrName = name;
         m_attrs[ind].nAttrElems = ae;
         m_attrs[ind].iAttrType = at;
         m_attrs[ind].nStartPos = pos;
     }
 
-    inline const qlib::LString &getAttrName(int ind) const
+    // inline const qlib::LString &getAttrName(int ind) const
+    // {
+    //     return m_attrs[ind].attrName;
+    // }
+    inline int getAttrLoc(int ind) const
     {
-        return m_attrs[ind].attrName;
+        return m_attrs[ind].nAttrLoc;
     }
     inline int getAttrElemSize(int ind) const
     {

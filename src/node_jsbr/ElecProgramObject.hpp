@@ -11,12 +11,16 @@ class ElecProgramObject
 private:
     ElecView *m_pView;
 
-    int m_progObjID;
+    // int m_progObjID;
+    qlib::LString m_progObjName;
 
     qlib::LString loadFile(const qlib::LString &filename);
 
 public:
-    ElecProgramObject(ElecView *pView) : m_pView(pView), m_progObjID(-1) {}
+    ElecProgramObject(ElecView *pView, const qlib::LString &name)
+        : m_pView(pView), m_progObjName(name)
+    {
+    }
     virtual ~ElecProgramObject();
 
     bool loadShaders(const qlib::MapTable<qlib::LString> &name);

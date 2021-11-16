@@ -13,6 +13,10 @@ class ElecDisplayList : public gfx::DisplayContext
 private:
     typedef gfx::DisplayContext super_t;
 
+    /////
+    // lines
+
+    // TODO: use uint8 for colors
     struct LineDrawAttr
     {
         float x, y, z, w;
@@ -24,6 +28,26 @@ private:
 
     using LineDrawBuf = std::deque<LineDrawAttr>;
     LineDrawBuf m_lineBuf;
+
+    bool m_fPrevPosValid;
+
+    /////
+    // triangles
+
+    struct TrigVertAttr
+    {
+        float x, y, z, w;
+        // float nx, ny, nz, nw;
+        float r, g, b, a;
+    };
+    
+    using TrigVertArray = gfx::DrawAttrArray<TrigVertAttr>;
+    TrigVertArray *m_pTrigArray;
+
+    using TrigVertBuf = std::deque<TrigVertAttr>;
+    TrigVertBuf m_trigBuf;
+
+    /////
 
     bool m_fValid;
 
@@ -39,7 +63,6 @@ private:
     /// current drawing mode
     int m_nDrawMode;
 
-    bool m_fPrevPosValid;
     Vector4D m_prevPos;
     qlib::quint32 m_prevCol;
     Vector4D m_prevNorm;
@@ -76,7 +99,14 @@ private:
 
     void endLines();
 
+    void addTrigVert(const Vector4D &v, const Vector4D &n, qlib::quint32 c);
+
 public:
+
+    static const int DSLOC_VERT_POS = 0;
+    static const int DSLOC_VERT_COLOR = 1;
+    static const int DSLOC_VERT_NORMAL = 1;
+
     ElecDisplayList();
     virtual ~ElecDisplayList();
 
@@ -113,5 +143,6 @@ public:
     virtual void recordEnd();
 
     gfx::AbstDrawAttrs *getLineArray() const { return m_pLineArray; }
+    gfx::AbstDrawAttrs *getTrigArray() const { return m_pTrigArray; }
 };
 }  // namespace node_jsbr

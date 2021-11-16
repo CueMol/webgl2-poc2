@@ -21,6 +21,8 @@ private:
     // TODO: remove?
     std::deque<qlib::Matrix4D> m_matstack;
 
+    qlib::LString m_sectionName;
+
 public:
     ElecDisplayContext() : m_pView(nullptr), m_pDefPO(nullptr) {}
     virtual ~ElecDisplayContext();

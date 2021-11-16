@@ -39,9 +39,9 @@ void TestRenderer::display(DisplayContext *pdc)
     if (!m_pDrawData) {
         m_pDrawData = new DrawArray();
         m_pDrawData->setAttrSize(2);
-        m_pDrawData->setAttrInfo(0, "vertexPosition", 3, qlib::type_consts::QTC_FLOAT32,
+        m_pDrawData->setAttrInfo(0, 0, 3, qlib::type_consts::QTC_FLOAT32,
                                  offsetof(DrawAttr, x));
-        m_pDrawData->setAttrInfo(1, "color", 4, qlib::type_consts::QTC_FLOAT32,
+        m_pDrawData->setAttrInfo(1, 1, 4, qlib::type_consts::QTC_FLOAT32,
                                  offsetof(DrawAttr, r));
         m_pDrawData->alloc(VERTEX_NUMS);
         initData();

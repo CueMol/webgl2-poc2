@@ -83,7 +83,7 @@ void ElecView::setUpProjMat(int cx, int cy)
     int bcx = convToBackingX(cx);
     int bcy = convToBackingY(cy);
 
-    LOG_DPRINTLN("ElecView.setUpProjMat> BCX=%d, BCY=%d", bcx, bcy);
+    MB_DPRINTLN("ElecView.setUpProjMat> BCX=%d, BCY=%d", bcx, bcy);
 
     {
         const float left = -vw * fasp;

@@ -1,8 +1,9 @@
 #version 300 es
-//
+// -*-Mode: C++;-*-
 
-in vec3 vertexPosition;
-in vec4 color;
+layout (location=0) in vec3 vertexPosition;
+layout (location=1) in vec4 color;
+layout (location=2) in vec3 normal;
 
 layout (std140) uniform mvp_matrix {
     mat4 model;

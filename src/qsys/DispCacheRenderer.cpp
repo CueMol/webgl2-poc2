@@ -126,9 +126,9 @@ void DispListCacheImpl::display(DisplayContext *pdc, DispCacheRenderer *pOuter)
             pOuter->render(m_pdl);
             m_pdl->recordEnd();
 
-            // pOuter->preRender(pdc);
-            // pdc->callDisplayList(m_pdl);
-            // pOuter->postRender(pdc);
+            pOuter->preRender(pdc);
+            pdc->callDisplayList(m_pdl);
+            pOuter->postRender(pdc);
             return;
         } else {
             // pdc can't create DL --> render directly

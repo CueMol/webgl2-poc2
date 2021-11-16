@@ -26,13 +26,15 @@ bool ElecProgramObject::loadShaders(const qlib::MapTable<qlib::LString> &file_na
     }
 
     auto method = peer.Get("createShader").As<Napi::Function>();
-    auto rval = method.Call(peer, {args});
+    auto rval =
+        method.Call(peer, {Napi::String::New(env, m_progObjName.c_str()), args});
 
-    int shader_id = rval.As<Napi::Number>().Int32Value();
-    printf("shader ID: %d\n", shader_id);
-    m_progObjID = shader_id;
+    // int shader_id = rval.As<Napi::Number>().Int32Value();
+    // printf("shader ID: %d\n", shader_id);
+    // m_progObjID = shader_id;
+    bool result = rval.As<Napi::Boolean>().Value();
 
-    return true;
+    return result;
 }
 
 qlib::LString ElecProgramObject::loadFile(const qlib::LString &filename)
@@ -59,7 +61,8 @@ void ElecProgramObject::enable()
     auto peer = m_pView->getPeerObj();
     auto env = peer.Env();
     auto method = peer.Get("enableShader").As<Napi::Function>();
-    method.Call(peer, {Napi::Number::New(env, m_progObjID)});
+    // method.Call(peer, {Napi::Number::New(env, m_progObjID)});
+    method.Call(peer, {Napi::String::New(env, m_progObjName.c_str())});
     // printf("ElecProgramObject::enable %d OK\n", m_progObjID);
 }
 
@@ -71,5 +74,13 @@ void ElecProgramObject::disable()
     method.Call(peer, {});
     // printf("ElecProgramObject::disable %d OK\n", m_progObjID);
 }
+
+// void ElecProgramObject::destroy()
+// {
+//     auto peer = m_pView->getPeerObj();
+//     auto env = peer.Env();
+//     auto method = peer.Get("deleteShader").As<Napi::Function>();
+//     method.Call(peer, {Napi::String::New(env, m_progObjName.c_str())});
+// }
 
 }  // namespace node_jsbr

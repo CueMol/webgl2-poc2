@@ -6,6 +6,7 @@ namespace node_jsbr {
 
 ElecDisplayList::ElecDisplayList()
     : m_pLineArray(nullptr),
+      m_pTrigArray(nullptr),
       m_fValid(false),
       m_nDrawMode(DRAWMODE_NONE),
       m_pColor(gfx::SolidColor::createRGB(0.5, 0.5, 0.5)),
@@ -20,6 +21,7 @@ ElecDisplayList::ElecDisplayList()
 ElecDisplayList::~ElecDisplayList()
 {
     if (m_pLineArray) delete m_pLineArray;
+    if (m_pTrigArray) delete m_pTrigArray;
 }
 
 qlib::uid_t ElecDisplayList::getSceneID() const
@@ -32,10 +34,10 @@ qlib::uid_t ElecDisplayList::getSceneID() const
 
 void ElecDisplayList::vertex(const Vector4D &aV)
 {
-    printf("vert (%f,%f,%f)\n", aV.x(), aV.y(), aV.z());
+    // printf("vert (%f,%f,%f)\n", aV.x(), aV.y(), aV.z());
     Vector4D v(aV);
     xform_vec(v);
-    printf("vert (%f,%f,%f)\n", v.x(), v.y(), v.z());
+    // printf("vert (%f,%f,%f)\n", v.x(), v.y(), v.z());
 
 #ifdef MB_DEBUG
     if (!qlib::isFinite(v.x()) || !qlib::isFinite(v.y()) || !qlib::isFinite(v.z())) {
@@ -43,7 +45,7 @@ void ElecDisplayList::vertex(const Vector4D &aV)
     }
 #endif
 
-    printf("draw mode %d\n", m_nDrawMode);
+    // printf("draw mode %d\n", m_nDrawMode);
     switch (m_nDrawMode) {
         default:
         case DRAWMODE_NONE:
@@ -51,12 +53,9 @@ void ElecDisplayList::vertex(const Vector4D &aV)
             break;
 
         case DRAWMODE_LINES:
-            printf("lines prev pos %d\n", m_fPrevPosValid);
             if (!m_fPrevPosValid) {
                 m_prevPos = v;
-                printf("prev col scene id: %d\n", getSceneID());
                 m_prevCol = m_pColor->getDevCode(getSceneID());
-                printf("prevcol: %uX\n", m_prevCol);
                 m_fPrevPosValid = true;
             } else {
                 drawLine(v, m_pColor->getDevCode(getSceneID()), m_prevPos, m_prevCol);
@@ -79,8 +78,7 @@ void ElecDisplayList::vertex(const Vector4D &aV)
 
             //////////////////////////////////////////////////////
         case DRAWMODE_TRIGS:
-            // TODO: impl
-            // m_pIntData->meshVertex(v, m_norm, m_pColor);
+            addTrigVert(v, m_norm, m_pColor->getDevCode(getSceneID()));
             break;
 
             //////////////////////////////////////////////////////
@@ -180,7 +178,7 @@ void ElecDisplayList::startLines()
         return;
     }
     m_nDrawMode = DRAWMODE_LINES;
-    printf("ElecDisplayList::startLines OK\n");
+    // printf("ElecDisplayList::startLines OK\n");
 }
 
 void ElecDisplayList::startLineStrip()
@@ -262,6 +260,15 @@ void ElecDisplayList::drawLine(const Vector4D &v1, qlib::quint32 c1, const Vecto
                                      float(gfx::getFA(c2))});
 }
 
+void ElecDisplayList::addTrigVert(const Vector4D &v1, const Vector4D &n1,
+                                  qlib::quint32 c1)
+{
+    m_trigBuf.push_back(TrigVertAttr{float(v1.x()), float(v1.y()), float(v1.z()),
+                                     float(v1.w()), float(gfx::getFR(c1)),
+                                     float(gfx::getFG(c1)), float(gfx::getFB(c1)),
+                                     float(gfx::getFA(c1))});
+}
+
 bool ElecDisplayList::recordStart()
 {
     printf("ElecDisplayList::recordStart called %p\n", m_pLineArray);
@@ -269,6 +276,12 @@ bool ElecDisplayList::recordStart()
         printf("delete %p\n", m_pLineArray);
         delete m_pLineArray;
         m_pLineArray = nullptr;
+    }
+
+    if (m_pTrigArray) {
+        printf("delete %p\n", m_pTrigArray);
+        delete m_pTrigArray;
+        m_pTrigArray = nullptr;
     }
 
     m_fValid = false;
@@ -288,32 +301,59 @@ void ElecDisplayList::recordEnd()
     // Mark as valid
     m_fValid = true;
 
-    // Create attr array
-    const size_t nelems = m_lineBuf.size();
-    printf("ElecDisplayList::recordEnd nelems %d\n", nelems);
-    if (nelems == 0) return;
+    // Create Line attr array
+    const size_t nelems_line = m_lineBuf.size();
+    printf("ElecDisplayList::recordEnd nelems_line %zu\n", nelems_line);
+    if (nelems_line > 0) {
+        m_pLineArray = new LineDrawArray();
+        m_pLineArray->setDrawMode(gfx::AbstDrawElem::DRAW_LINES);
+        m_pLineArray->setAttrSize(2);
+        m_pLineArray->setAttrInfo(0, DSLOC_VERT_POS, 4,
+                                  qlib::type_consts::QTC_FLOAT32,
+                                  offsetof(LineDrawAttr, x));
+        m_pLineArray->setAttrInfo(1, DSLOC_VERT_COLOR, 4, qlib::type_consts::QTC_FLOAT32,
+                                  offsetof(LineDrawAttr, r));
+        m_pLineArray->alloc(nelems_line);
 
-    m_pLineArray = new LineDrawArray();
-    m_pLineArray->setDrawMode(gfx::AbstDrawElem::DRAW_LINES);
-    m_pLineArray->setAttrSize(2);
-    m_pLineArray->setAttrInfo(0, "vertexPosition", 4, qlib::type_consts::QTC_FLOAT32,
-                              offsetof(LineDrawAttr, x));
-    m_pLineArray->setAttrInfo(1, "color", 4, qlib::type_consts::QTC_FLOAT32,
-                              offsetof(LineDrawAttr, r));
-    m_pLineArray->alloc(nelems);
-
-    size_t i = 0;
-    for (const auto &elem : m_lineBuf) {
-        MB_ASSERT(i < nelems);
-        m_pLineArray->at(i) = elem;
-        ++i;
+        size_t i = 0;
+        for (const auto &elem : m_lineBuf) {
+            MB_ASSERT(i < nelems);
+            m_pLineArray->at(i) = elem;
+            ++i;
+        }
+        m_pLineArray->setUpdated(true);
+        m_lineBuf.clear();
     }
-    m_pLineArray->setUpdated(true);
+
+    // Create Trig attr array
+    MB_ASSERT(m_pTrigArray == nullptr);
+    const size_t nelems_trig = m_trigBuf.size();
+    printf("ElecDisplayList::recordEnd nelems_trig %zu\n", nelems_trig);
+    if (nelems_trig > 0) {
+        m_pTrigArray = new TrigVertArray();
+        m_pTrigArray->setDrawMode(gfx::AbstDrawElem::DRAW_TRIANGLES);
+        m_pTrigArray->setAttrSize(2);
+        m_pTrigArray->setAttrInfo(0, DSLOC_VERT_POS, 4,
+                                  qlib::type_consts::QTC_FLOAT32,
+                                  offsetof(TrigVertAttr, x));
+        m_pTrigArray->setAttrInfo(1, DSLOC_VERT_COLOR, 4, qlib::type_consts::QTC_FLOAT32,
+                                  offsetof(TrigVertAttr, r));
+        m_pTrigArray->alloc(nelems_trig);
+
+        size_t i = 0;
+        for (const auto &elem : m_trigBuf) {
+            MB_ASSERT(i < nelems);
+            m_pTrigArray->at(i) = elem;
+            ++i;
+        }
+        m_pTrigArray->setUpdated(true);
+        m_trigBuf.clear();
+    }
 }
 
 gfx::DisplayContext *ElecDisplayList::createDisplayList()
 {
-    return NULL;
+    return nullptr;
 }
 
 bool ElecDisplayList::canCreateDL() const

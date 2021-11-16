@@ -21,7 +21,7 @@ void ElecDisplayContext::init(ElecView *pView)
     m_pView = pView;
     setTargetView(pView);
 
-    m_pDefPO = new ElecProgramObject(pView);
+    m_pDefPO = new ElecProgramObject(pView, "default");
     qlib::MapTable<qlib::LString> file_names;
     file_names.set("vertex", "shaders/vertex_shader.glsl");
     file_names.set("fragment", "shaders/fragment_shader.glsl");
@@ -32,14 +32,17 @@ class ElecVBOImpl : public gfx::VBORep
 {
 private:
     qlib::uid_t m_nViewID;
-    int m_nBufID;
+    // int m_nBufID;
+    qlib::LString m_bufName;
     size_t m_nElems;
     Napi::ObjectReference m_arrayBufRef;
     int m_nDrawMode;
 
 public:
-    ElecVBOImpl(ElecView *pView, const gfx::AbstDrawAttrs &data)
+    ElecVBOImpl(ElecView *pView, const qlib::LString &name,
+                const gfx::AbstDrawAttrs &data)
         : m_nViewID(pView->getUID()),
+          m_bufName(name),
           m_nElems(data.getSize()),
           m_nDrawMode(data.getDrawMode())
     {
@@ -49,14 +52,15 @@ public:
             if (i > 0) json_str += ",";
             json_str += "{";
             json_str +=
-                LString::format("\"name\": \"%s\",", data.getAttrName(i).c_str());
+                // LString::format("\"name\": \"%s\",", data.getAttrName(i).c_str());
+                LString::format("\"nloc\": \"%d\",", data.getAttrLoc(i));
             json_str += LString::format("\"nelems\": \"%d\",", data.getAttrElemSize(i));
             json_str += LString::format("\"itype\": \"%d\",", data.getAttrTypeID(i));
             json_str += LString::format("\"npos\": \"%d\"", data.getAttrPos(i));
-            // json_str += LString::format("\"size\": \"%d\"", data.getElemSize());
             json_str += "}";
         }
         json_str += "]";
+        printf("buffer info: %s\n", json_str.c_str());
         const size_t buffer_size = data.getDataSize();
         const size_t nelems = data.getSize();
 
@@ -65,12 +69,18 @@ public:
 
         auto method = peer.Get("createBuffer").As<Napi::Function>();
         auto rval = method.Call(
-            peer, {Napi::Number::New(env, buffer_size), Napi::Number::New(env, nelems),
-                   Napi::String::New(env, json_str)});
+            peer,
+            {Napi::String::New(env, m_bufName), Napi::Number::New(env, buffer_size),
+             Napi::Number::New(env, nelems), Napi::String::New(env, json_str)});
 
-        int buffer_id = rval.As<Napi::Number>().Int32Value();
-        printf("buffer ID: %d\n", buffer_id);
-        m_nBufID = buffer_id;
+        bool result = rval.As<Napi::Boolean>().Value();
+        if (!result) {
+            MB_THROW(qlib::RuntimeException, "createBuffer failed");
+            return;
+        }
+        // int buffer_id = rval.As<Napi::Number>().Int32Value();
+        // printf("buffer ID: %d\n", buffer_id);
+        // m_nBufID = buffer_id;
 
         auto pbuf = const_cast<void *>(data.getData());
 
@@ -88,10 +98,23 @@ public:
         auto env = peer.Env();
 
         auto method = peer.Get("drawBuffer").As<Napi::Function>();
-        method.Call(peer, {Napi::Number::New(env, m_nBufID),
+        method.Call(peer, {Napi::String::New(env, m_bufName),
                            Napi::Number::New(env, m_nDrawMode),
                            Napi::Number::New(env, m_nElems), m_arrayBufRef.Value(),
                            Napi::Boolean::New(env, isUpdated)});
+    }
+
+    void deleteBuffer(ElecView *pView)
+    {
+        auto peer = pView->getPeerObj();
+        auto env = peer.Env();
+
+        auto method = peer.Get("deleteBuffer").As<Napi::Function>();
+        auto rval = method.Call(peer, {Napi::String::New(env, m_bufName)});
+        bool result = rval.As<Napi::Boolean>().Value();
+        if (!result) {
+            MB_THROW(qlib::RuntimeException, "deleteBuffer failed");
+        }
     }
 
     virtual ~ElecVBOImpl()
@@ -102,8 +125,10 @@ public:
             // because the parent context (and also all DLs) may be already destructed.
             return;
         }
-        // auto env = getEnv(pView.get());
-        // TODO: impl
+        auto pEView = dynamic_cast<ElecView *>(pView.get());
+        if (pEView != nullptr) {
+            deleteBuffer(pEView);
+        }
     }
 };
 
@@ -112,7 +137,8 @@ void ElecDisplayContext::drawElem(const gfx::AbstDrawElem &data)
     auto pda = static_cast<const gfx::AbstDrawAttrs *>(&data);
     auto pImpl = static_cast<ElecVBOImpl *>(data.getVBO());
     if (!pImpl) {
-        pImpl = new ElecVBOImpl(m_pView, *pda);
+        auto name = LString::format("%s_%p", m_sectionName.c_str(), pda);
+        pImpl = new ElecVBOImpl(m_pView, name, *pda);
         data.setVBO(pImpl);
     }
     pImpl->drawBuffer(m_pView, data.isUpdated());
@@ -122,16 +148,16 @@ void ElecDisplayContext::drawElem(const gfx::AbstDrawElem &data)
 
 void ElecDisplayContext::startSection(const qlib::LString &section_name)
 {
+    m_sectionName = section_name;
     if (!m_pDefPO) return;
-
     m_pDefPO->enable();
     // m_pDefPO->setUniformF("frag_alpha", getAlpha());
 }
 
 void ElecDisplayContext::endSection()
 {
+    m_sectionName = "";
     if (!m_pDefPO) return;
-
     // m_pDefPO->setUniformF("frag_alpha", 1.0);
     m_pDefPO->disable();
 }
@@ -174,15 +200,23 @@ bool ElecDisplayContext::isCompatibleDL(DisplayContext *pdl) const
 
 void ElecDisplayContext::callDisplayList(DisplayContext *pdl)
 {
-    printf("callDisplayList called\n");
+    // printf("callDisplayList called\n");
     ElecDisplayList *psrc = dynamic_cast<ElecDisplayList *>(pdl);
     if (psrc == nullptr || !psrc->isValid()) return;
 
     // Lines
     auto *pLines = psrc->getLineArray();
-    if (pLines) drawElem(*pLines);
+    if (pLines != nullptr) {
+        drawElem(*pLines);
+    }
 
-    printf("callDisplayList OK\n");
+    // Triangles
+    auto *pTrigs = psrc->getTrigArray();
+    if (pTrigs != nullptr) {
+        drawElem(*pTrigs);
+    }
+
+    // printf("callDisplayList OK\n");
 }
 
 //////////
