@@ -5,7 +5,7 @@ SET(QLIB_LINK_LIBRARIES
   pcre
   Boost::filesystem
   Boost::timer
-  Boost::thread
+#  Boost::thread
   )
 
 include_directories(

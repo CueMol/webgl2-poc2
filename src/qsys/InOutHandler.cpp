@@ -10,11 +10,6 @@
 #include <qlib/FileStream.hpp>
 #include <qlib/LDOM2Tree.hpp>
 
-//#ifdef HAVE_BOOST_THREAD
-#define BOOST_LIB_DIAGNOSTIC 1
-//#define BOOST_DYN_LINK 1
-#define BOOST_ALL_DYN_LINK 1
-
 #ifdef USE_BOOST_TIMER
 #include <boost/timer/timer.hpp>
 #endif

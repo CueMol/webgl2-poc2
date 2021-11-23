@@ -8,7 +8,8 @@
 
 #include "qlib.hpp"
 #include "LStream.hpp"
-#include <boost/thread/condition.hpp>
+// #include <boost/thread/condition.hpp>
+#include <thread>
 
 namespace qlib {
 
@@ -18,8 +19,10 @@ namespace qlib {
     std::deque<char> m_data;
     bool m_feof;
 
-    boost::mutex m_mu;
-    boost::condition m_cond;
+    // boost::mutex m_mu;
+    std::mutex m_mu;
+    // boost::condition m_cond;
+    std::condition_variable m_cond;
 
   public:
     PipeStreamImpl() : m_feof(false) {}
