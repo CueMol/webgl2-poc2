@@ -2,20 +2,23 @@
 
 #include "LoadObjectCommand.hpp"
 
-#include <boost/filesystem.hpp>
+// #include <boost/filesystem.hpp>
+#include <filesystem>
 #include <qlib/ObjectManager.hpp>
-#include <qsys/SceneManager.hpp>
 #include <qsys/ObjReader.hpp>
+#include <qsys/SceneManager.hpp>
 #include <qsys/StreamManager.hpp>
 
-namespace fs = boost::filesystem;
+// namespace boostfs = boost::filesystem;
+namespace stdfs = std::filesystem;
 
 namespace qsys {
 
 // TO DO: use common impl with LoadSceneCommand
 LString LoadObjectCommand::guessFileFormat(int nCatID) const
 {
-    fs::path file_path = m_filePath.c_str();
+    // boostfs::path file_path = m_filePath.c_str();
+    stdfs::path file_path = m_filePath.c_str();
     auto extension = LString(file_path.extension().string());
 
     auto strMgr = qsys::StreamManager::getInstance();
@@ -62,10 +65,10 @@ void LoadObjectCommand::run()
     reader->setPath(m_filePath);
 
     // check compression
-    fs::path file_path = m_filePath.c_str();
+    // boostfs::path file_path = m_filePath.c_str();
+    stdfs::path file_path = m_filePath.c_str();
     auto extension = LString(file_path.extension().string());
-    if (extension.equalsIgnoreCase(".gz"))
-        reader->setPropStr("compress", "gzip");
+    if (extension.equalsIgnoreCase(".gz")) reader->setPropStr("compress", "gzip");
 
     m_pResObj = reader->createDefaultObj();
     reader->attach(m_pResObj);
@@ -74,8 +77,7 @@ void LoadObjectCommand::run()
 
     if (m_objectName.isEmpty()) {
         m_pResObj->setPropStr("name", createDefaultObjName());
-    }
-    else {
+    } else {
         m_pResObj->setPropStr("name", m_objectName);
     }
 
@@ -96,7 +98,8 @@ qlib::LStringList LoadObjectCommand::searchCompatibleRendNames() const
 
 LString LoadObjectCommand::createDefaultObjName() const
 {
-    fs::path file_path = m_filePath.c_str();
+    // boostfs::path file_path = m_filePath.c_str();
+    stdfs::path file_path = m_filePath.c_str();
     auto stem = file_path.stem().string();
     return LString(stem);
 }

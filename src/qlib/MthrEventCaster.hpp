@@ -9,14 +9,9 @@
 #include "qlib.hpp"
 #include "EventCaster.hpp"
 
-// #ifdef HAVE_BOOST_THREAD
-// #include <boost/thread.hpp>
-// #endif  
 #include <thread>
 
 namespace qlib {
-
-#ifdef HAVE_BOOST_THREAD
 
   ///
   /// Multi-thread-aware event caster class
@@ -131,11 +126,6 @@ namespace qlib {
     }
 
   };
-
-#else
-  // TO DO: XXX
-#endif
-  
 
 } // namespace qlib
 

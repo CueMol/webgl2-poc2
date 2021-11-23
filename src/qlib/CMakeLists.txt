@@ -3,9 +3,9 @@ SET(QLIB_LINK_LIBRARIES
   expat
 #  qmzlib
   pcre
-  Boost::filesystem
-  Boost::timer
-  Boost::thread
+#  Boost::filesystem
+#  Boost::timer
+#  Boost::thread
   )
 
 include_directories(

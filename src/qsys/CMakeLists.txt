@@ -112,7 +112,12 @@ endif()
 add_definitions(-DNO_SCRIPT=1)
 
 add_library(qsys SHARED ${QSYS_SRCS} ${MCWG_HEADERS})
-target_link_libraries(qsys PRIVATE qlib gfx Boost::filesystem Boost::thread)
+target_link_libraries(qsys PRIVATE
+  qlib
+  gfx
+#  Boost::filesystem
+#  Boost::thread
+  )
 
 MCWRAPGEN_PYWRAPPERS(qsys)
 MCWRAPGEN_JS_WRAPPERS(qsys)

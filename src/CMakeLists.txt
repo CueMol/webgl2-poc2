@@ -3,8 +3,8 @@ set(CMAKE_CXX_STANDARD 17)
 find_package(BISON REQUIRED)
 find_package(FLEX REQUIRED)
 
-find_package(Boost 1.50.0 REQUIRED
-  COMPONENTS system thread filesystem chrono timer)
+find_package(Boost 1.50.0 REQUIRED)
+#  COMPONENTS system thread filesystem chrono timer)
 
 #####
 
@@ -44,21 +44,21 @@ if (${Boost_FOUND})
   SET(HAVE_BOOST "1")
 endif (${Boost_FOUND})
 
-if (${Boost_CHRONO_FOUND})
-  SET(HAVE_BOOST_CHRONO "1")
-endif (${Boost_CHRONO_FOUND})
+# if (${Boost_CHRONO_FOUND})
+#   SET(HAVE_BOOST_CHRONO "1")
+# endif (${Boost_CHRONO_FOUND})
 
-if (${Boost_FILESYSTEM_FOUND})
-  SET(HAVE_BOOST_FILESYSTEM "1")
-endif (${Boost_FILESYSTEM_FOUND})
+# if (${Boost_FILESYSTEM_FOUND})
+#   SET(HAVE_BOOST_FILESYSTEM "1")
+# endif (${Boost_FILESYSTEM_FOUND})
 
 if (${Boost_SYSTEM_FOUND})
   SET(HAVE_BOOST_SYSTEM "1")
 endif (${Boost_SYSTEM_FOUND})
 
-if (${Boost_THREAD_FOUND})
-  SET(HAVE_BOOST_THREAD "1")
-endif (${Boost_THREAD_FOUND})
+# if (${Boost_THREAD_FOUND})
+#   SET(HAVE_BOOST_THREAD "1")
+# endif (${Boost_THREAD_FOUND})
 
 if (${Boost_TIMER_FOUND})
   SET(HAVE_BOOST_TIMER "1")
