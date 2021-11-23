@@ -4,7 +4,7 @@ SET(QLIB_LINK_LIBRARIES
 #  qmzlib
   pcre
 #  Boost::filesystem
-  Boost::timer
+#  Boost::timer
 #  Boost::thread
   )
 

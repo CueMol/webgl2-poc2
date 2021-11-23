@@ -3,8 +3,7 @@ set(CMAKE_CXX_STANDARD 17)
 find_package(BISON REQUIRED)
 find_package(FLEX REQUIRED)
 
-find_package(Boost 1.50.0 REQUIRED
-  COMPONENTS system timer)
+find_package(Boost 1.50.0 REQUIRED)
 #  COMPONENTS system thread filesystem chrono timer)
 
 #####
