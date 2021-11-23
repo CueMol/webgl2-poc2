@@ -196,6 +196,7 @@ FILE *qlib::fopen_utf8(const LString &utf8name, const LString &utf8mode)
 #else
   // TO DO: correct implementation!!
   fp = fopen(utf8name.c_str(), utf8mode.c_str());
+  printf("fopen(%s, %s)=%p\n", utf8name.c_str(), utf8mode.c_str(), fp);
 #endif
 
   return fp;

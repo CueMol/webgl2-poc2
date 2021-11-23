@@ -1,11 +1,11 @@
-# LCMS2 support
-find_package(LCMS2)
+# # LCMS2 support
+# find_package(LCMS2)
 # message(STATUS "LCMS2_FOUND: ${LCMS2_FOUND} INCLUDE_DIR: ${LCMS2_INCLUDE_DIR} LIBRARIES: ${LCMS2_LIBRARIES}")
 
-if (${LCMS2_FOUND})
-  add_definitions(-DHAVE_LCMS2_H=1)
-  list(APPEND GFX_LINK_LIBRARIES ${LCMS2_LIBRARIES})
-endif()
+# if (${LCMS2_FOUND})
+#   add_definitions(-DHAVE_LCMS2_H=1)
+#   list(APPEND GFX_LINK_LIBRARIES ${LCMS2_LIBRARIES})
+# endif()
 
 ##########
 

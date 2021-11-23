@@ -22,6 +22,8 @@ find_package(Perl REQUIRED)
 # endif ()
 
 option(BUILD_NODEJS_BINDINGS "Build node.js bindings" ON)
+message(STATUS "BUILD_NODEJS_BINDINGS:" ${BUILD_NODEJS_BINDINGS})
+
 # option(BUILD_PYTHON_BINDINGS "Build Python bindings")
 
 # main components/modules

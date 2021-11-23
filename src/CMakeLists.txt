@@ -98,5 +98,10 @@ add_subdirectory(qlib)
 add_subdirectory(gfx)
 add_subdirectory(qsys)
 
-add_subdirectory(node_jsbr)
+if (${BUILD_NODEJS_BINDINGS})
+  add_subdirectory(node_jsbr)
+endif()
 
+if (EMSCRIPTEN)
+  add_subdirectory(embr)
+endif()

@@ -22,7 +22,8 @@ static int s_nInitCount = 0;
 bool qlib::init()
 {
     bool res;
-
+    printf("qlib::init\n");
+    printf("s_nInitCount %d\n", s_nInitCount);
     if (s_nInitCount == 0) {
         LString::initLocale();
         LMsgLog::init();
@@ -31,6 +32,7 @@ bool qlib::init()
         ClassRegistry::init();
         PerfMeasManager::init();
         qlib_regClasses();
+printf("qlib_regClasses OK\n");
         res = true;
     } else
         res = false;
