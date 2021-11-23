@@ -115,7 +115,7 @@ add_library(qsys SHARED ${QSYS_SRCS} ${MCWG_HEADERS})
 target_link_libraries(qsys PRIVATE
   qlib
   gfx
-  Boost::filesystem
+#  Boost::filesystem
 #  Boost::thread
   )
 

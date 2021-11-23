@@ -2,19 +2,22 @@
 
 #include "LoadSceneCommand.hpp"
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
+// #include <boost/filesystem.hpp>
 #include <qlib/ObjectManager.hpp>
 #include <qsys/SceneManager.hpp>
 #include <qsys/SceneXMLReader.hpp>
 #include <qsys/StreamManager.hpp>
 
-namespace fs = boost::filesystem;
+// namespace boostfs = boost::filesystem;
+namespace stdfs = std::filesystem;
 
 namespace qsys {
 
 LString LoadSceneCommand::guessFileFormat(int nCatID) const
 {
-    fs::path file_path = m_filePath.c_str();
+    // boostfs::path file_path = m_filePath.c_str();
+    stdfs::path file_path = m_filePath.c_str();
     auto extension = LString(file_path.extension().string());
 
     auto strMgr = qsys::StreamManager::getInstance();

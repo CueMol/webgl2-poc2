@@ -3,7 +3,7 @@ SET(QLIB_LINK_LIBRARIES
   expat
 #  qmzlib
   pcre
-  Boost::filesystem
+#  Boost::filesystem
   Boost::timer
 #  Boost::thread
   )

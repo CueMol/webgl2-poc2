@@ -58,7 +58,7 @@ SET(NODE_JSBR_LINK_LIBRARIES
   # qmpng
   # qmzlib
   qlib gfx qsys
-  Boost::filesystem
+#  Boost::filesystem
   ${CMAKE_JS_LIB}
   )
 

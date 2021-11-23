@@ -42,11 +42,13 @@
 #include <jsbr/jsbr.hpp>
 #endif
 
-#include <boost/filesystem/operations.hpp>
-#include <boost/filesystem/path.hpp>
+// #include <boost/filesystem/operations.hpp>
+// #include <boost/filesystem/path.hpp>
+#include <filesystem>
 
 using namespace qsys;
-namespace fs = boost::filesystem;
+//namespace boostfs = boost::filesystem;
+namespace stdfs = std::filesystem;
 
 namespace {
 // is this used ???
@@ -265,20 +267,22 @@ void Scene::setSource(const LString &name)
 
 LString Scene::getBasePath() const
 {
-    // fs::detail::utf8_codecvt_facet utf8;
-    // fs::path srcpath(m_source.c_str(), utf8);
+    stdfs::path srcpath(m_source.c_str());
+    stdfs::path ppath = srcpath.parent_path();
 
-    fs::path srcpath(m_source.c_str());
-
-    fs::path ppath = srcpath.parent_path();
-
-#if (BOOST_FILESYSTEM_VERSION == 2)
-    return ppath.directory_string();
-#else
-    // std::string rval = ppath.string(utf8);
-    std::string rval = ppath.string();
+    LString rval = ppath.string().c_str();
     return rval;
-#endif
+
+//     boostfs::path srcpath(m_source.c_str());
+//     boostfs::path ppath = srcpath.parent_path();
+
+// #if (BOOST_FILESYSTEM_VERSION == 2)
+//     return ppath.directory_string();
+// #else
+//     // std::string rval = ppath.string(utf8);
+//     std::string rval = ppath.string();
+//     return rval;
+// #endif
 }
 
 LString Scene::resolveBasePath(const LString &aLocalFile) const
@@ -1832,21 +1836,33 @@ void Scene::setIccFileName(const LString &fn)
     std::list<LString> ls;
     pSMgr->getMultiPath("icc_profile_dir", getUID(), ls);
 
-    fs::path fname(fn.c_str()), iccpath;
-
-    BOOST_FOREACH (const LString &pathstr, ls) {
-        fs::path spath(pathstr.c_str());
+    stdfs::path fname(fn.c_str()), iccpath;
+    for (const LString &pathstr: ls) {
+        stdfs::path spath(pathstr.c_str());
         spath /= fname;
-        if (fs::is_regular_file(spath)) {
+        if (stdfs::is_regular_file(spath)) {
             iccpath = spath;
             break;
         }
     }
-
-    if (!fs::is_regular_file(iccpath)) {
+    if (!stdfs::is_regular_file(iccpath)) {
         MB_THROW(qlib::RuntimeException, "icc profile not found: " + fn);
         return;
     }
+
+    // boostfs::path fname(fn.c_str()), iccpath;
+    // BOOST_FOREACH (const LString &pathstr, ls) {
+    //     boostfs::path spath(pathstr.c_str());
+    //     spath /= fname;
+    //     if (boostfs::is_regular_file(spath)) {
+    //         iccpath = spath;
+    //         break;
+    //     }
+    // }
+    // if (!boostfs::is_regular_file(iccpath)) {
+    //     MB_THROW(qlib::RuntimeException, "icc profile not found: " + fn);
+    //     return;
+    // }
 
     pXfm->loadIccFile(iccpath.string());
     pXfm->setEnabled(m_bUseColProof);

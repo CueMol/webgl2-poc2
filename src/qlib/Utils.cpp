@@ -6,156 +6,169 @@
 
 #include <common.h>
 
-#include "LString.hpp"
-#include "LDebug.hpp"
 #include "Utils.hpp"
+
+#include <filesystem>
+
+#include "LDebug.hpp"
 #include "LExceptions.hpp"
+#include "LString.hpp"
 
 #ifdef _WIN32
-#  include "LUnicode.hpp"
-#  include <sys/stat.h>
+#include <sys/stat.h>
+
+#include "LUnicode.hpp"
 #endif
 
-#include <boost/filesystem/operations.hpp>
-#include <boost/filesystem/path.hpp>
+// #include <boost/filesystem/operations.hpp>
+// #include <boost/filesystem/path.hpp>
 
 using namespace qlib;
-namespace fs = boost::filesystem;
+// namespace boostfs = boost::filesystem;
+namespace stdfs = std::filesystem;
 
 namespace qlib {
 
-  LString getLeafName(const LString &aPath)
-  {
-    fs::path path(aPath.c_str());
-#if (BOOST_FILESYSTEM_VERSION==2)
-    return LString(path.filename());
-#else
-    return LString(path.filename().string());
-#endif
-  }
-
-LString makeRelativePath(const LString &aAbs, const LString &aBase)
+LString getLeafName(const LString &aPath)
 {
-  fs::path abspath(aAbs.c_str());
-  fs::path basepath(aBase.c_str());
-  if (!abspath.is_complete() || !basepath.is_complete())
-    return aAbs; // aAbs or aBase is not absolute path
+    stdfs::path path(aPath.c_str());
+    return LString(path.filename().string());
 
-  if (abspath.root_path()!=basepath.root_path())
-    return aAbs; // root names are different; cannot make relative path
-
-  fs::path::const_iterator iter1 = abspath.begin();
-  fs::path::const_iterator iter1_end = abspath.end();
-  fs::path::const_iterator iter2 = basepath.begin();
-  fs::path::const_iterator iter2_end = basepath.end();
-
-  for (; iter1!=iter1_end && iter2!=iter2_end ; ++iter1, ++iter2) {
-    if (*iter1!=*iter2) break;
-  }
-
-  fs::path relpath;
-  //if (iter1!=iter1_end && iter2!=iter2_end) {
-    for (; iter2!=iter2_end; ++iter2)
-      relpath /= "..";
-    for (; iter1!=iter1_end; ++iter1)
-      relpath /= *iter1;
-  //}
-
-  // string() will canonicalize the path separator to "/"
-  //return relpath.file_string();
-  return relpath.string();
+    // boostfs::path path(aPath.c_str());
+// #if (BOOST_FILESYSTEM_VERSION == 2)
+//     return LString(path.filename());
+// #else
+//     return LString(path.filename().string());
+// #endif
 }
 
+// TODO: impl tests
+LString makeRelativePath(const LString &aAbs, const LString &aBase)
+{
+    stdfs::path abspath(aAbs.c_str());
+    stdfs::path basepath(aBase.c_str());
+    // if (!abspath.is_complete() || !basepath.is_complete())
+    if (!abspath.is_absolute() || !basepath.is_absolute())
+        return aAbs;  // aAbs or aBase is not absolute path
+
+    if (abspath.root_path() != basepath.root_path())
+        return aAbs;  // root names are different; cannot make relative path
+
+    auto iter1 = abspath.begin();
+    auto iter1_end = abspath.end();
+    auto iter2 = basepath.begin();
+    auto iter2_end = basepath.end();
+
+    for (; iter1 != iter1_end && iter2 != iter2_end; ++iter1, ++iter2) {
+        if (*iter1 != *iter2) break;
+    }
+
+    stdfs::path relpath;
+    // if (iter1!=iter1_end && iter2!=iter2_end) {
+    for (; iter2 != iter2_end; ++iter2) relpath /= "..";
+    for (; iter1 != iter1_end; ++iter1) relpath /= *iter1;
+    //}
+
+    // string() will canonicalize the path separator to "/"
+    // return relpath.file_string();
+    return relpath.string();
+}
+
+// TODO: impl tests
 LString makeAbsolutePath(const LString &aRel, const LString &aBase)
 {
-  MB_DPRINTLN("makeAbsPath rel=%s, base=%s", aRel.c_str(), aBase.c_str());
+    MB_DPRINTLN("makeAbsPath rel=%s, base=%s", aRel.c_str(), aBase.c_str());
 
-  fs::path relpath(aRel.c_str());
-  fs::path basepath(aBase.c_str());
-  if (relpath.is_complete())
-    return aRel; // aRel is already in abs form
+    stdfs::path relpath(aRel.c_str());
+    stdfs::path basepath(aBase.c_str());
+    // if (relpath.is_complete()) {
+    if (relpath.is_absolute()) {
+        return aRel;  // aRel is already in abs form
+    }
 
-  // convert to the absolute representation
+    auto abspath = basepath / relpath;
+    abspath = stdfs::canonical(abspath);
+    return abspath.string();
 
-  fs::path::const_iterator iter1 = relpath.begin();
-  fs::path::const_iterator iter1_end = relpath.end();
+//     // convert to the absolute representation
+//     auto iter1 = relpath.begin();
+//     auto iter1_end = relpath.end();
 
-  int nup = 0;
-  for (; iter1!=iter1_end; ++iter1) {
-    if (*iter1=="..")
-      ++nup;
-    else
-      break;
-  }
+//     int nup = 0;
+//     for (; iter1 != iter1_end; ++iter1) {
+//         if (*iter1 == "..")
+//             ++nup;
+//         else
+//             break;
+//     }
 
-  if (nup==0) {
-    // There's no up-dir ('..') string --> just concat to make abs path.
-#if (BOOST_FILESYSTEM_VERSION==2)
-    relpath = fs::complete(relpath, basepath);
-    return relpath.file_string();
-#else
-    relpath = fs::absolute(relpath, basepath);
-    return relpath.string();
-#endif
-  }
+//     if (nup == 0) {
+//         // There's no up-dir ('..') string --> just concat to make abs path.
+// #if (BOOST_FILESYSTEM_VERSION == 2)
+//         relpath = boostfs::complete(relpath, basepath);
+//         return relpath.file_string();
+// #else
+//         relpath = boostfs::absolute(relpath, basepath);
+//         return relpath.string();
+// #endif
+//     }
 
-  for (; nup>0; --nup) {
-    MB_ASSERT(basepath.has_parent_path());
-    basepath = basepath.parent_path();
-  }
-  
-  for (; iter1!=iter1_end; ++iter1) {
-    basepath /= *iter1;
-  }
+//     for (; nup > 0; --nup) {
+//         MB_ASSERT(basepath.has_parent_path());
+//         basepath = basepath.parent_path();
+//     }
 
-#if (BOOST_FILESYSTEM_VERSION==2)
-  return basepath.file_string();
-#else
-  return basepath.string();
-#endif
+//     for (; iter1 != iter1_end; ++iter1) {
+//         basepath /= *iter1;
+//     }
+
+// #if (BOOST_FILESYSTEM_VERSION == 2)
+//     return basepath.file_string();
+// #else
+//     return basepath.string();
+// #endif
 }
 
 bool isAbsolutePath(const LString &aPath)
 {
-  fs::path path(aPath.c_str());
-  return path.is_complete();
+    // boostfs::path path(aPath.c_str());
+    // return path.is_complete();
+
+    return stdfs::path(aPath.c_str()).is_absolute();
 }
 
 bool isFileReadable(const LString &strpath)
 {
 #ifdef _WIN32
-  U16Char *pwcs;
+    U16Char *pwcs;
 
-  try {
-    // conv pathname
-    pwcs = qlib::UTF8toUCS16(strpath);
-  }
-  catch (const LException &ex) {
-    // conversion error
-    // --> file is not readable
-    //return false;
+    try {
+        // conv pathname
+        pwcs = qlib::UTF8toUCS16(strpath);
+    } catch (const LException &ex) {
+        // conversion error
+        // --> file is not readable
+        // return false;
 
-    LString msg = LString::format("isFileReadable: cannot convert UTF8 file name <%s>", strpath.c_str());
-    LOG_DPRINTLN(msg);
-    MB_THROW(RuntimeException, msg);
-    return NULL;
-  }
-  
-  struct _stat buf;
-  int result = _wstat( (wchar_t *)pwcs, &buf );
-  delete [] pwcs;
-  if (result==0 && (buf.st_mode&_S_IFREG))
-    return true;
+        LString msg = LString::format(
+            "isFileReadable: cannot convert UTF8 file name <%s>", strpath.c_str());
+        LOG_DPRINTLN(msg);
+        MB_THROW(RuntimeException, msg);
+        return NULL;
+    }
+
+    struct _stat buf;
+    int result = _wstat((wchar_t *)pwcs, &buf);
+    delete[] pwcs;
+    if (result == 0 && (buf.st_mode & _S_IFREG)) return true;
 #else
-  fs::path path(strpath);
-
-  if (fs::exists(path) &&
-      fs::is_regular_file(path))
-    return true;
+    stdfs::path path(strpath.c_str());
+    if (stdfs::exists(path) && stdfs::is_regular_file(path)) {
+        return true;
+    }
 #endif
 
-  return false;
+    return false;
 }
 
-}
-
+}  // namespace qlib
