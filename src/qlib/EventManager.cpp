@@ -153,25 +153,34 @@ void EventManager::checkTimerQueue()
 
 TimerImpl::~TimerImpl() {}
 
-#ifdef HAVE_BOOST_CHRONO
-#include <boost/chrono/chrono.hpp>
-#endif
+// #ifdef HAVE_BOOST_CHRONO
+// #include <boost/chrono/chrono.hpp>
+// #endif
+#include <chrono>
 
 qlib::time_value TimerImpl::getCurrentTime()
 {
-#ifdef HAVE_BOOST_CHRONO
-    using namespace boost::chrono;
-
-    high_resolution_clock::time_point tp = high_resolution_clock::now();
-
+    auto tp = std::chrono::high_resolution_clock::now();
     // time_value is in nano-sec rep with int64 precision
-    qlib::time_value t1 = duration_cast<nanoseconds>(tp.time_since_epoch()).count();
-
-    // LOG_DPRINTLN("getCurrentTime() = %llu", t1);
+    qlib::time_value t1 =
+        std::chrono::duration_cast<std::chrono::nanoseconds>(tp.time_since_epoch())
+            .count();
     return t1;
-#else
-    return qlib::time_value(0);
-#endif
+
+    // #ifdef HAVE_BOOST_CHRONO
+    //     using namespace boost::chrono;
+
+    //     high_resolution_clock::time_point tp = high_resolution_clock::now();
+
+    //     // time_value is in nano-sec rep with int64 precision
+    //     qlib::time_value t1 =
+    //     duration_cast<nanoseconds>(tp.time_since_epoch()).count();
+
+    //     // LOG_DPRINTLN("getCurrentTime() = %llu", t1);
+    //     return t1;
+    // #else
+    //     return qlib::time_value(0);
+    // #endif
 }
 
 //////////

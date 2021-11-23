@@ -4,7 +4,7 @@ find_package(BISON REQUIRED)
 find_package(FLEX REQUIRED)
 
 find_package(Boost 1.50.0 REQUIRED
-  COMPONENTS system chrono timer)
+  COMPONENTS system timer)
 #  COMPONENTS system thread filesystem chrono timer)
 
 #####
@@ -45,9 +45,9 @@ if (${Boost_FOUND})
   SET(HAVE_BOOST "1")
 endif (${Boost_FOUND})
 
-if (${Boost_CHRONO_FOUND})
-  SET(HAVE_BOOST_CHRONO "1")
-endif (${Boost_CHRONO_FOUND})
+# if (${Boost_CHRONO_FOUND})
+#   SET(HAVE_BOOST_CHRONO "1")
+# endif (${Boost_CHRONO_FOUND})
 
 # if (${Boost_FILESYSTEM_FOUND})
 #   SET(HAVE_BOOST_FILESYSTEM "1")
