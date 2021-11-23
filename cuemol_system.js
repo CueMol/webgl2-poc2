@@ -195,7 +195,6 @@ module.exports = class Manager {
     checkMvpMatUBO() {
         if (this._mat_ubo===null) {
             // Create UBO
-            // TODO: move to another method elsewhere
             const gl = this._context;
             let matrix_ubo = gl.createBuffer();
             gl.bindBuffer(gl.UNIFORM_BUFFER, matrix_ubo);
@@ -240,9 +239,6 @@ module.exports = class Manager {
         const gl = this._context;
         let elem_info = JSON.parse(elem_info_str);
 
-        // let prog_id = 0;
-        // let program = this._prog_data[prog_id];
-
         // VAO
         let vao = gl.createVertexArray();
         gl.bindVertexArray(vao);
@@ -252,7 +248,6 @@ module.exports = class Manager {
 
         const stride = nsize / num_elems;
         elem_info.forEach((value) => {
-            // let aloc = gl.getAttribLocation(program, value["name"]);
             let aloc = value["nloc"];
             gl.enableVertexAttribArray(aloc);
             gl.vertexAttribPointer(aloc, value["nelems"], gl.FLOAT, false, stride, value["npos"]);

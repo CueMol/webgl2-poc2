@@ -7,9 +7,10 @@ layout (location=2) in vec3 normal;
 
 layout (std140) uniform mvp_matrix {
     mat4 model;
-    // uniform mat4 view;
     mat4 projection;
 };
+
+uniform bool enable_lighting;
 
 out vec4 vColor;
 
