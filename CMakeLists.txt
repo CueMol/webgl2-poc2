@@ -1,41 +1,45 @@
-cmake_minimum_required(VERSION 2.8)
+# cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.12)
 
-# Name of the project (will be the name of the plugin)
-project(gfx_render)
+if (COMMAND cmake_policy)
+  # find_package() uses <PackageName>_ROOT variables.
+  cmake_policy(SET CMP0074 NEW)
+  # option() honors normal variables.
+  cmake_policy(SET CMP0077 NEW)
+endif ()
+
+# Name of the project
+project(CueMol3_poc CXX C)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Include node-addon-api wrappers
-execute_process(COMMAND node -p "require('node-addon-api').include"
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-        OUTPUT_VARIABLE NODE_ADDON_API_DIR
-        )
-string(REPLACE "\n" "" NODE_ADDON_API_DIR ${NODE_ADDON_API_DIR})
-string(REPLACE "\"" "" NODE_ADDON_API_DIR ${NODE_ADDON_API_DIR})
-message(STATUS "NODE_ADDON_API_DIR: ${NODE_ADDON_API_DIR}")
-include_directories(${NODE_ADDON_API_DIR})
+find_package(Perl REQUIRED)
 
-# Essential include files to build a node addon,
-# you should add this line in every CMake.js based project.
-include_directories(${CMAKE_JS_INC})
+# if (APPLE)
+#   set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9" CACHE STRING "" FORCE)
+# endif ()
 
-# Declare the location of the source files
-set (SOURCE_FILES
-  src/gfx_render_addon.cpp
-  src/proxy.cpp
-  src/app.cpp
-  )
+option(BUILD_NODEJS_BINDINGS "Build node.js bindings" ON)
+# option(BUILD_PYTHON_BINDINGS "Build Python bindings")
 
-# This line will tell CMake that we're building a shared library
-# from the above source files
-# named after the project's name
-add_library(${PROJECT_NAME} SHARED ${SOURCE_FILES} ${CMAKE_JS_SRC})
+# main components/modules
+add_subdirectory(src)
 
-# This line will give our library file a .node extension without any "lib" prefix
-set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "" SUFFIX ".node")
+###########
 
-# Essential library files to link to a node addon,
-# you should add this line in every CMake.js based project.
-target_link_libraries(${PROJECT_NAME} ${CMAKE_JS_LIB})
+message(STATUS
+  "\n==============\n"
+  "Summary report\n"
+  "==============\n")
+
+if (DEFINED CMAKE_BUILD_TYPE)
+  message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+endif()
+
+message(STATUS "Build node.js bindings: ${BUILD_NODEJS_BINDINGS}")
+
+message(STATUS "Compiler: ${CMAKE_CXX_COMPILER} (${CMAKE_CXX_COMPILER_VERSION})")
+message(STATUS "Flags: ${CMAKE_CXX_FLAGS}")
+message(STATUS "Install prefix: ${CMAKE_INSTALL_PREFIX}")
