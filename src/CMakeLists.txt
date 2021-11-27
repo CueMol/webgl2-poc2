@@ -106,6 +106,6 @@ if (${BUILD_NODEJS_BINDINGS})
   add_subdirectory(node_jsbr)
 endif()
 
-if (EMSCRIPTEN)
+if (${BUILD_EMSCRIPTEN_BINDINGS})
   add_subdirectory(embr)
 endif()

@@ -8,7 +8,7 @@
 #include <qlib/LVarArgs.hpp>
 #include <qlib/LVariant.hpp>
 
-#include "wrapper.hpp"
+// #include "wrapper.hpp"
 
 namespace embr {
 bool initCueMol(const std::string &config);
@@ -18,14 +18,67 @@ extern "C"
 {
     using EMBR_HANDLE = void *;
 
-    EMSCRIPTEN_KEEPALIVE bool initCueMol(const char *config) {
+    EMSCRIPTEN_KEEPALIVE bool initCueMol(const char *config)
+    {
         return embr::initCueMol(config);
     }
 
-    EMSCRIPTEN_KEEPALIVE EMBR_HANDLE createObject(const char *name)
+    EMSCRIPTEN_KEEPALIVE EMBR_HANDLE createObject(const char *className)
     {
-        auto pobj = embr::Wrapper::createObj(name);
-        return static_cast<EMBR_HANDLE>(pobj);
+        qlib::LClass *pCls = nullptr;
+        try {
+            qlib::ClassRegistry *pMgr = qlib::ClassRegistry::getInstance();
+            MB_ASSERT(pMgr != NULL);
+            pCls = pMgr->getClassObj(className);
+            MB_DPRINTLN("CreateObj, LClass for %s: %p", className, pCls);
+        } catch (...) {
+            auto msg = qlib::LString::format("createObj class %s not found", className);
+            LOG_DPRINTLN("Error: %s", msg.c_str());
+            return nullptr;
+        }
+
+        auto pDyn = pCls->createScrObj();
+
+        if (!pDyn) {
+            auto msg = qlib::LString::format(
+                "createObj %s failed (class.createScrObj returned NULL)", className);
+            LOG_DPRINTLN("Error: %s", msg.c_str());
+            return nullptr;
+        }
+
+        MB_DPRINTLN("createObj(%s) OK, result=%p!!", className, pDyn);
+
+        // return static_cast<qlib::LScriptable *>(pDyn);
+        return static_cast<EMBR_HANDLE>(pDyn);
+    }
+
+    EMSCRIPTEN_KEEPALIVE void destroyObject(EMBR_HANDLE pobj)
+    {
+        auto pScObj = static_cast<qlib::LScriptable *>(pobj);
+        if (pScObj == nullptr) {
+            // TODO: throw js excpt
+            LOG_DPRINTLN("Wrapped obj is null");
+            return;
+        }
+        pScObj->destruct();
+    }
+
+    EMSCRIPTEN_KEEPALIVE const char *getClassName(EMBR_HANDLE pobj)
+    {
+        auto pScObj = static_cast<qlib::LScriptable *>(pobj);
+        if (pScObj == nullptr) {
+            // TODO: throw js excpt
+            LOG_DPRINTLN("Wrapped obj is null");
+            return nullptr;
+        }
+
+        qlib::LClass *pCls = pScObj->getClassObj();
+        if (pCls == nullptr) {
+            // TODO: throw js excpt
+            LOG_DPRINTLN("Wrapped obj's class is null");
+            return nullptr;
+        }
+        return pCls->getClassName();
     }
 
     EMSCRIPTEN_KEEPALIVE void getProp(EMBR_HANDLE pobj, const char *propname,
@@ -252,12 +305,44 @@ extern "C"
 
     EMSCRIPTEN_KEEPALIVE const char *getStrVarArgs(EMBR_HANDLE ptr, int ind)
     {
-        printf("getIntVarargs called %p [%d] \n", ptr, ind);
+        printf("getStrVarArgs called %p [%d] \n", ptr, ind);
         auto pVarArgs = static_cast<qlib::LVarArgs *>(ptr);
         if (ind >= 0) {
             return pVarArgs->at(ind).getStringValue().c_str();
         } else {
             return pVarArgs->retval().getStringValue().c_str();
         }
+    }
+
+    //
+
+    EMSCRIPTEN_KEEPALIVE void setObjectVarArgs(EMBR_HANDLE ptr, int ind,
+                                               EMBR_HANDLE value)
+    {
+        printf("setObjectVarArgs called %p [%d] <- %p\n", ptr, ind, value);
+        auto pVarArgs = static_cast<qlib::LVarArgs *>(ptr);
+        auto &&variant = (ind >= 0) ? pVarArgs->at(ind) : pVarArgs->retval();
+
+        auto pObj = static_cast<qlib::LScriptable *>(value);
+
+        // pobj is owned by the interpreter-side
+        // (variant share the ptr and won't have the ownership!!)
+        variant.shareObjectPtr(pObj);
+    }
+
+    EMSCRIPTEN_KEEPALIVE EMBR_HANDLE getObjectVarArgs(EMBR_HANDLE ptr, int ind)
+    {
+        printf("getObjectVarArgs called %p [%d] \n", ptr, ind);
+        auto pVarArgs = static_cast<qlib::LVarArgs *>(ptr);
+
+        EMBR_HANDLE pobj;
+        auto &&variant = (ind >= 0) ? pVarArgs->at(ind) : pVarArgs->retval();
+        pobj = variant.getObjectPtr();
+
+        // At this point, the ownership of value is passed to interpreter-side
+        //  (forget() avoids deleting the ptr transferred to interpreter-side)
+        variant.forget();
+
+        return pobj;
     }
 }

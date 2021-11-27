@@ -26,6 +26,13 @@ message(STATUS "BUILD_NODEJS_BINDINGS:" ${BUILD_NODEJS_BINDINGS})
 
 # option(BUILD_PYTHON_BINDINGS "Build Python bindings")
 
+if (EMSCRIPTEN)
+  option(BUILD_EMSCRIPTEN_BINDINGS "Build emscripten bindings" ON)
+else ()
+  option(BUILD_EMSCRIPTEN_BINDINGS "Build emscripten bindings" OFF)
+endif()
+message(STATUS "BUILD_EMSCRIPTEN_BINDINGS:" ${BUILD_EMSCRIPTEN_BINDINGS})
+
 # main components/modules
 add_subdirectory(src)
 

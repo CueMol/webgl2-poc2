@@ -1,18 +1,33 @@
 const Module = require("./build.em/src/embr/embr");
-const utils = require("./src/embr/utils");
+// import Module from "./build.em/src/embr/embr";
+
+const utils = require("./build.em/javascript/utils");
+// const Vector = require("./src/embr/Vector");
 
 Module['onRuntimeInitialized'] = () => {
     console.log("Module.initCueMol:", Module.initCueMol);
-    utils.initCueMol(Module, "/mnt/src/data/sysconfig.xml");
+    utils.initCueMol("/mnt/src/data/sysconfig.xml");
 
-    let pvec = utils.createObject(Module, "Vector");
-    console.log("createObj Vec:", pvec);
-    utils.setPropObj(Module, pvec, "x", 1.234);
-    console.log("getProp Vec.x:", utils.getPropObj(Module, pvec, "x"));
-    console.log("getProp Vec.strvalue:", utils.getPropObj(Module, pvec, "strvalue"));
+    let vecobj = utils.createObject("Vector");
+    console.log("createObj Vec:", vecobj["@implements_Vector"]);
+    // utils.setPropObj(pvec, "x", 1.234);
+    // console.log("getProp Vec.x:", utils.getPropObj(pvec, "x"));
+    // console.log("getProp Vec.strvalue:", utils.getPropObj(pvec, "strvalue"));
+    console.log("Vector:", vecobj);
+    console.log("Vector.strvalue:", vecobj.strvalue);
+    vecobj.strvalue = "(1,2,3)"
+    console.log("Vector.strvalue:", vecobj.strvalue);
 
-    utils.invokeMethod(Module, pvec, "set3", 1.234, 4.453, 2.341);
-    console.log("getProp Vec.toString:", utils.invokeMethod(Module, pvec, "toString"));
+    // utils.invokeMethod(pvec, "set3", 1.234, 4.453, 2.341);
+    // console.log("getProp Vec.toString:", utils.invokeMethod(pvec, "toString"));
+
+    console.log("==========");
+    let vecobj2 = utils.createObject("Vector");
+    vecobj2.strvalue = "(3,2,1)"
+    console.log("Vec.cross:", vecobj.cross(vecobj2).toString());
+
+    vecobj.destroy();
+    vecobj2.destroy();
 
     return;
     
