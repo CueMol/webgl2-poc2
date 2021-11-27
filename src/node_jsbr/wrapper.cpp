@@ -280,7 +280,7 @@ Napi::Value Wrapper::lvarToNapiValue(Napi::Env env, qlib::LVariant &variant)
     return env.Null();
 }
 
-/// convert PyObject to LVariant
+/// convert NAPI value to LVariant
 bool Wrapper::napiValueToLVar(Napi::Env env, Napi::Value value, qlib::LVariant &rvar)
 {
     try {
