@@ -13,7 +13,7 @@ use Utils;
 use Parser;
 
 our $out_dir;
-our $utils_module_path = "../utils";
+our $utils_module_path = "../utils_module";
 
 ##########
 
@@ -52,8 +52,8 @@ sub genJsWrapper($)
   print OUT "\n";
   print OUT "class ${js_clsname} extends utils.BaseWrapper {\n";
   print OUT "\n";
-  print OUT "  constructor(aWrapped) {\n";
-  print OUT "    super(aWrapped);\n";
+  print OUT "  constructor(...args) {\n";
+  print OUT "    super(...args);\n";
   print OUT "  }\n";
   print OUT "\n";
 

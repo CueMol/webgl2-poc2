@@ -1,20 +1,41 @@
-var Module = {};
-Module['locateFile'] = (path, prefix) => {
-    console.log("locate file called", path, prefix);
-    return prefix + path;
-};
+const path = require('path');
+// const utils = require("./build.em/javascript/utils");
+const utils_module = require("./build.em/javascript/utils_module");
+console.log("utils_module:", utils_module)
 
-Module = require("./build.em/src/embr/embr");
-// import Module from "./build.em/src/embr/embr";
+prom = utils_module(path.join(__dirname, "build.em/src/embr/embr.js"));
+console.log("Promise:", prom)
 
-Module['locateFile'] = (path, prefix) => {
-    console.log("locate file called", path, prefix);
-    return prefix + path;
-};
+prom.then((utils) => {
+    utils.initCueMol("/sysconfig.xml");
+    let vecobj = utils.createObject("Vector");
+    console.log("createObj Vec:", vecobj["@implements_Vector"]);
+    console.log(`Vector: ${vecobj}`);
+    console.log("Vector.strvalue:", vecobj.strvalue);
+    vecobj.strvalue = "(1,2,3)"
+    console.log("Vector.strvalue:", vecobj.strvalue);
 
-const utils = require("./build.em/javascript/utils");
-// const Vector = require("./src/embr/Vector");
+    console.log("==========");
+    let vecobj2 = utils.createObject("Vector");
+    // vecobj2.strvalue = "(3,2,1)"
+    vecobj2.set3(3,2,1);
+    console.log("Vec.cross:", vecobj.cross(vecobj2).toString());
 
+    vecobj.destroy();
+    vecobj2.destroy();
+
+    console.log("==========");
+
+    let mgr = utils.getService("SceneManager");
+    console.log(`mgr: ${mgr}`);
+    console.log(`mgr.toString(): ${mgr.toString()}`);
+    mgr.destroy();
+    console.log(`mgr.toString(): ${mgr.toString()}`);
+
+    return;
+});
+
+/*
 Module['onRuntimeInitialized'] = () => {
     console.log("Module.initCueMol:", Module.initCueMol);
     // utils.initCueMol("/mnt/src/data/sysconfig.xml");
@@ -50,3 +71,4 @@ Module['onRuntimeInitialized'] = () => {
 
     return;
 };
+*/
