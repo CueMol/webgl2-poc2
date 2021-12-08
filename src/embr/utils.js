@@ -33,6 +33,13 @@ module.exports.createObject = (className) => {
     return createWrapper(pobj);
 }
 
+module.exports.getService = (className) => {
+    let pstr = convStr(className);
+    let pobj = Module["_getService"](pstr);
+    Module._free(pstr);
+    return createWrapper(pobj);
+}
+
 const varToVal = (args, ind) => {
     let type_id = Module["_getVarArgsTypeID"](args, ind);
     console.log(`varToVal ${ind} -> type ID ${type_id}`);

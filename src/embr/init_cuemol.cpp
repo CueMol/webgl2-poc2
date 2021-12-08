@@ -23,8 +23,8 @@ using qlib::LString;
 /// CueMol initialization routine
 bool initCueMol(const std::string &config)
 {
-    EM_ASM(var directory = '/mnt'; FS.mkdir(directory);
-           FS.mount(NODEFS, {root : './'}, directory););
+    // EM_ASM(var directory = '/mnt'; FS.mkdir(directory);
+    //        FS.mount(NODEFS, {root : './'}, directory););
 
     printf("initCueMol(%s) called.\n", config.c_str());
 

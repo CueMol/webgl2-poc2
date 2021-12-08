@@ -52,6 +52,29 @@ extern "C"
         return static_cast<EMBR_HANDLE>(pDyn);
     }
 
+    EMSCRIPTEN_KEEPALIVE EMBR_HANDLE getService(const char *className)
+    {
+        qlib::LDynamic *pObj = nullptr;
+        try {
+            qlib::ClassRegistry *pMgr = qlib::ClassRegistry::getInstance();
+            MB_ASSERT(pMgr != NULL);
+            pObj = pMgr->getSingletonObj(className);
+        } catch (...) {
+            auto msg = qlib::LString::format("getService(%s) failed", className);
+            LOG_DPRINTLN("Error: %s", msg.c_str());
+            return nullptr;
+        }
+
+        if (pObj == nullptr) {
+            auto msg =
+                qlib::LString::format("getService(%s) returned nullptr", className);
+            LOG_DPRINTLN("Error: %s", msg.c_str());
+            return nullptr;
+        }
+
+        return static_cast<EMBR_HANDLE>(pObj);
+    }
+
     EMSCRIPTEN_KEEPALIVE void destroyObject(EMBR_HANDLE pobj)
     {
         auto pScObj = static_cast<qlib::LScriptable *>(pobj);
@@ -194,22 +217,22 @@ extern "C"
 
     EMSCRIPTEN_KEEPALIVE EMBR_HANDLE allocVarArgs(size_t nargs)
     {
-        printf("alloc_varargs called %zu\n", nargs);
+        // printf("alloc_varargs called %zu\n", nargs);
         auto result = new qlib::LVarArgs(nargs);
-        printf("alloc_varargs result %p\n", result);
+        // printf("alloc_varargs result %p\n", result);
         return static_cast<EMBR_HANDLE>(result);
     }
 
     EMSCRIPTEN_KEEPALIVE void freeVarArgs(EMBR_HANDLE ptr)
     {
-        printf("free_varargs called %p\n", ptr);
+        // printf("free_varargs called %p\n", ptr);
         auto pVarArgs = static_cast<qlib::LVarArgs *>(ptr);
         delete pVarArgs;
     }
 
     EMSCRIPTEN_KEEPALIVE int getVarArgsTypeID(EMBR_HANDLE ptr, int ind)
     {
-        printf("getVarArgsTypeID called %p [%d] \n", ptr, ind);
+        // printf("getVarArgsTypeID called %p [%d] \n", ptr, ind);
         auto pVarArgs = static_cast<qlib::LVarArgs *>(ptr);
         if (ind >= 0) {
             return pVarArgs->at(ind).getTypeID();
@@ -222,7 +245,7 @@ extern "C"
 
     EMSCRIPTEN_KEEPALIVE void setBoolVarArgs(EMBR_HANDLE ptr, int ind, bool value)
     {
-        printf("setBoolVarargs called %p [%d] <- %d\n", ptr, ind, value);
+        // printf("setBoolVarargs called %p [%d] <- %d\n", ptr, ind, value);
         auto pVarArgs = static_cast<qlib::LVarArgs *>(ptr);
         if (ind >= 0) {
             pVarArgs->at(ind).setBoolValue(value);
@@ -233,7 +256,7 @@ extern "C"
 
     EMSCRIPTEN_KEEPALIVE bool getBoolVarArgs(EMBR_HANDLE ptr, int ind)
     {
-        printf("getBoolVarargs called %p [%d] \n", ptr, ind);
+        // printf("getBoolVarargs called %p [%d] \n", ptr, ind);
         auto pVarArgs = static_cast<qlib::LVarArgs *>(ptr);
         if (ind >= 0) {
             return pVarArgs->at(ind).getBoolValue();
@@ -246,7 +269,7 @@ extern "C"
 
     EMSCRIPTEN_KEEPALIVE void setIntVarArgs(EMBR_HANDLE ptr, int ind, int value)
     {
-        printf("setIntVarargs called %p [%d] <- %d\n", ptr, ind, value);
+        // printf("setIntVarargs called %p [%d] <- %d\n", ptr, ind, value);
         auto pVarArgs = static_cast<qlib::LVarArgs *>(ptr);
         if (ind >= 0) {
             pVarArgs->at(ind).setIntValue(value);
@@ -257,7 +280,7 @@ extern "C"
 
     EMSCRIPTEN_KEEPALIVE int getIntVarArgs(EMBR_HANDLE ptr, int ind)
     {
-        printf("getIntVarargs called %p [%d] \n", ptr, ind);
+        // printf("getIntVarargs called %p [%d] \n", ptr, ind);
         auto pVarArgs = static_cast<qlib::LVarArgs *>(ptr);
         if (ind >= 0) {
             return pVarArgs->at(ind).getIntValue();
@@ -270,7 +293,7 @@ extern "C"
 
     EMSCRIPTEN_KEEPALIVE void setRealVarArgs(EMBR_HANDLE ptr, int ind, double value)
     {
-        printf("setRealVarargs called %p [%d] <- %f\n", ptr, ind, value);
+        // printf("setRealVarargs called %p [%d] <- %f\n", ptr, ind, value);
         auto pVarArgs = static_cast<qlib::LVarArgs *>(ptr);
         if (ind >= 0) {
             pVarArgs->at(ind).setRealValue(value);
@@ -281,7 +304,7 @@ extern "C"
 
     EMSCRIPTEN_KEEPALIVE int getRealVarArgs(EMBR_HANDLE ptr, int ind)
     {
-        printf("getRealVarargs called %p [%d] \n", ptr, ind);
+        // printf("getRealVarargs called %p [%d] \n", ptr, ind);
         auto pVarArgs = static_cast<qlib::LVarArgs *>(ptr);
         if (ind >= 0) {
             return pVarArgs->at(ind).getRealValue();
@@ -294,7 +317,7 @@ extern "C"
 
     EMSCRIPTEN_KEEPALIVE void setStrVarArgs(EMBR_HANDLE ptr, int ind, const char *value)
     {
-        printf("setStrVarArgs called %p [%d] <- %s\n", ptr, ind, value);
+        // printf("setStrVarArgs called %p [%d] <- %s\n", ptr, ind, value);
         auto pVarArgs = static_cast<qlib::LVarArgs *>(ptr);
         if (ind >= 0) {
             pVarArgs->at(ind).setStringValue(value);
@@ -305,7 +328,7 @@ extern "C"
 
     EMSCRIPTEN_KEEPALIVE const char *getStrVarArgs(EMBR_HANDLE ptr, int ind)
     {
-        printf("getStrVarArgs called %p [%d] \n", ptr, ind);
+        // printf("getStrVarArgs called %p [%d] \n", ptr, ind);
         auto pVarArgs = static_cast<qlib::LVarArgs *>(ptr);
         if (ind >= 0) {
             return pVarArgs->at(ind).getStringValue().c_str();
@@ -319,7 +342,7 @@ extern "C"
     EMSCRIPTEN_KEEPALIVE void setObjectVarArgs(EMBR_HANDLE ptr, int ind,
                                                EMBR_HANDLE value)
     {
-        printf("setObjectVarArgs called %p [%d] <- %p\n", ptr, ind, value);
+        // printf("setObjectVarArgs called %p [%d] <- %p\n", ptr, ind, value);
         auto pVarArgs = static_cast<qlib::LVarArgs *>(ptr);
         auto &&variant = (ind >= 0) ? pVarArgs->at(ind) : pVarArgs->retval();
 
@@ -332,7 +355,7 @@ extern "C"
 
     EMSCRIPTEN_KEEPALIVE EMBR_HANDLE getObjectVarArgs(EMBR_HANDLE ptr, int ind)
     {
-        printf("getObjectVarArgs called %p [%d] \n", ptr, ind);
+        // printf("getObjectVarArgs called %p [%d] \n", ptr, ind);
         auto pVarArgs = static_cast<qlib::LVarArgs *>(ptr);
 
         EMBR_HANDLE pobj;
