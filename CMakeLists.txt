@@ -28,6 +28,7 @@ message(STATUS "BUILD_NODEJS_BINDINGS:" ${BUILD_NODEJS_BINDINGS})
 
 if (EMSCRIPTEN)
   option(BUILD_EMSCRIPTEN_BINDINGS "Build emscripten bindings" ON)
+  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/web_client/src/")
 else ()
   option(BUILD_EMSCRIPTEN_BINDINGS "Build emscripten bindings" OFF)
 endif()

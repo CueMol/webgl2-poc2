@@ -78,11 +78,7 @@ macro(MCWRAPGEN_CLASS _target_sources)
 
     # Generate javascript wrapper scripts
     if (${BUILD_NODEJS_BINDINGS} OR ${BUILD_EMSCRIPTEN_BINDINGS})
-      if (WIN32)
-        SET(_out_js_dir "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/javascript/wrappers")
-      else ()
-        SET(_out_js_dir "${CMAKE_BINARY_DIR}/javascript/wrappers")
-      endif()
+      SET(_out_js_dir "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/libs/wrappers")
       SET(_out_js_file "${_out_js_dir}/${_file_stem}.js")
       separate_arguments(_mcwg_js_command NATIVE_COMMAND "${MCWG_JS_CMD}")
       add_custom_command(
