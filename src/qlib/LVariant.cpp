@@ -99,9 +99,9 @@ void LVariant::copyFrom(const LVariant &src)
     value.pObjValue = src.value.pObjValue->copy();
     break;
 
-  case LT_SMARTPTR:
-    value.pSpValue = static_cast<LSupScrSp *>(src.value.pSpValue->copy());
-    break;
+  // case LT_SMARTPTR:
+  //   value.pSpValue = static_cast<LSupScrSp *>(src.value.pSpValue->copy());
+  //   break;
 
   case LT_ARRAY:
     value.pArrayValue = MB_NEW LVarArray(*src.value.pArrayValue);

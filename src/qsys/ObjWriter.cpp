@@ -11,8 +11,11 @@
 #include <qlib/LClassUtils.hpp>
 #include <qlib/FileStream.hpp>
 #include <qlib/Base64Stream.hpp>
-#include <qlib/GzipStream.hpp>
 #include <qlib/LDOM2Tree.hpp>
+
+#ifdef HAVE_QMZLIB
+#include <qlib/GzipStream.hpp>
+#endif
 
 #ifdef HAVE_LZMA_H
 #include <qlib/XzStream.hpp>
@@ -64,10 +67,12 @@ void ObjWriter::write2(qlib::OutStream &outs)
   int ncomp = getCompressMode();
   if (ncomp==COMP_NONE) {
   }
+#ifdef HAVE_QMZLIB
   else if (ncomp==COMP_GZIP) {
     pZOut = new qlib::GzipOutStream(*pTOut);
     pTOut = pZOut;
   }
+#endif
 #ifdef HAVE_LZMA_H
   else if (ncomp==COMP_XZIP) {
     pZOut = new qlib::XzOutStream(*pTOut);

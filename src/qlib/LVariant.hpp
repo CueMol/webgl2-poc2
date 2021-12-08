@@ -29,7 +29,7 @@ private:
         LReal realValue;
         LString *pStrValue;
         LScriptable *pObjValue;
-        LSupScrSp *pSpValue;
+        // LSupScrSp *pSpValue;
         LVarArray *pArrayValue;
         LVarList *pListValue;
         LVarDict *pDictValue;
@@ -44,7 +44,7 @@ public:
     static const int LT_REAL = 3;
     static const int LT_STRING = 4;
     static const int LT_OBJECT = 5;
-    static const int LT_SMARTPTR = 6;
+    // static const int LT_SMARTPTR = 6;
     static const int LT_ENUM = 7;
     static const int LT_ARRAY = 8;
     static const int LT_LIST = 9;

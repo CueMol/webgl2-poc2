@@ -39,6 +39,28 @@ SINGLETON_BASE_IMPL(LProcMgr);
 #include "PosixProcImpl.hpp"
 #endif
 
+namespace {
+class NullProcMgrImpl : public qlib::LProcMgrImpl
+{
+public:
+    NullProcMgrImpl() {}
+    virtual ~NullProcMgrImpl() {}
+
+    virtual int getCPUCount() const
+    {
+        return 1;
+    }
+
+    virtual qlib::ProcInThread *createProcess(const LString &path, const LString &args,
+                                              const LString &wdir)
+    {
+        return nullptr;
+    }
+
+    virtual void kill(qlib::ProcInThread *) {}
+};
+}  // namespace
+
 using namespace qlib;
 
 // automatic initialization by ClassRegistry
@@ -57,6 +79,8 @@ LProcMgr::LProcMgr() : m_nNextIndex(0)
 {
 #ifdef WIN32
     m_pImpl = MB_NEW WinProcMgrImpl();
+#elif __EMSCRIPTEN__
+    m_pImpl = MB_NEW NullProcMgrImpl();
 #else
     m_pImpl = MB_NEW PosixProcMgrImpl();
 #endif
@@ -71,7 +95,9 @@ LProcMgr::LProcMgr() : m_nNextIndex(0)
 
 LProcMgr::~LProcMgr()
 {
-    delete m_pImpl;
+    if (m_pImpl) {
+        delete m_pImpl;
+    }
 }
 
 void LProcMgr::setSlotSize(int n)

@@ -139,7 +139,7 @@ bool init(const char *config)
   // initialize qsys
 
   qsys_regClasses();
-
+  // printf("qsys_regClasses OK\n");
   SysConfig::init();
   ViewInputConfig::init();
   ViewInputConfig *pVIC = ViewInputConfig::getInstance();
@@ -149,6 +149,7 @@ bool init(const char *config)
   if (confpath.isEmpty())
     return false;
 
+  printf("qsys_regClasses OK\n");
   loadSysConfig(confpath);
 
   if (!RendererFactory::init())

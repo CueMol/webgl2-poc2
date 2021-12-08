@@ -32,6 +32,7 @@ use Wrapper;
 use ModLdr;
 use Jsclass;
 use Pyclass;
+use EmClass;
 
 my $msvc=0;
 
@@ -82,13 +83,11 @@ for (;;) {
   }
   elsif ($arg eq "-jsdir") {
     shift @ARGV;
-    # $Jsclass::out_dir = shift @ARGV;
     $outdir = shift @ARGV;
     next;
   }
   elsif ($arg eq "-pydir") {
     shift @ARGV;
-    # $Pyclass::out_dir = shift @ARGV;
     $outdir = shift @ARGV;
     next;
   }
@@ -124,6 +123,9 @@ elsif ($mode eq "js") {
 }
 elsif ($mode eq "py") {
     $Pyclass::out_dir = $outdir;
+}
+elsif ($mode eq "jsem") {
+    $EmClass::out_dir = $outdir;
 }
 
 ###################################################################
@@ -175,6 +177,9 @@ elsif ($mode eq "mod") {
 }
 elsif ($mode eq "js") {
   Jsclass::genJsWrapper($Parser::db{$curcls});
+}
+elsif ($mode eq "jsem") {
+    EmClass::genJsWrapper($Parser::db{$curcls});
 }
 elsif ($mode eq "py") {
   Pyclass::genWrapper($Parser::db{$curcls});
