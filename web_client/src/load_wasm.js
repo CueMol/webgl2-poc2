@@ -1,17 +1,14 @@
-import utils_module from "./libs/utils_module.js";
-let prom = utils_module("../embr.js");
-console.log("Promise:", prom)
-prom.then((utils) => {
-    utils.initCueMol("/sysconfig.xml");
-});
+// import utils_module from './libs/utils_module.js';
+import embr from './embr.js';
+const Utils = window.Utils;
 
-// import x from './embr.js';
-// const Module = x();
-// console.log("Module:", Module);
+console.log("Utils:", Utils);
+let promise = embr();
 
-// Module.then(
-//     (m) => {
-//         console.log("Module._em_test_cxx:", m._em_test_cxx);
-//         console.log("result:", m._em_test_cxx(123));
-//     }
-// );
+promise.then(
+    (m) => {
+        let utils = new Utils(m);
+        utils.initCueMol("/sysconfig.xml");
+        window.onCueMolLoaded(utils);
+    }
+);

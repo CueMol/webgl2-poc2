@@ -30,14 +30,16 @@ set_target_properties(embr PROPERTIES LINK_FLAGS "--no-entry -s EXPORT_ES6=1 -s 
 #
 #
 
-SET(JS_SCRIPTS
-  utils.js
-  utils_module.js
+add_custom_command(
+  TARGET embr POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy
+  ${CMAKE_CURRENT_SOURCE_DIR}/es6/cuemol.js
+  ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/libs/cuemol.js
   )
 
 add_custom_command(
   TARGET embr POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy
-  ${CMAKE_CURRENT_SOURCE_DIR}/utils_module.js
-  ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/libs/utils_module.js
+  ${CMAKE_CURRENT_SOURCE_DIR}/es6/base_wrapper.js
+  ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/libs/base_wrapper.js
   )

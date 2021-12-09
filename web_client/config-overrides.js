@@ -17,10 +17,10 @@ module.exports = function override(config, env) {
                 {
                     from: path.resolve(__dirname, "src/embr.data"),
                 },
-                {
-                    from: path.resolve(__dirname, "src/libs/"),
-                    to: "libs/",
-                },
+                // {
+                //     from: path.resolve(__dirname, "src/libs/"),
+                //     to: "libs/",
+                // },
             ],
         })
     );
