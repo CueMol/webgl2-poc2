@@ -1,0 +1,15 @@
+// -*-Mode: C++;-*-
+
+#include <qsys/View.qif>
+
+runtime_class EmView extends View
+{
+    client_hdr "EmView.hpp";
+    client_name embr::EmView;
+
+    scriptable;
+    smartptr;
+
+    void bind(string);
+
+};

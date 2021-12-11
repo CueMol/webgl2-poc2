@@ -14,6 +14,8 @@
 #include <qlib/qlib.hpp>
 #include <qsys/qsys.hpp>
 
+#include "EmView.hpp"
+#include "embr.hpp"
 #include "wrapper.hpp"
 
 namespace embr {
@@ -31,8 +33,8 @@ bool initCueMol(const std::string &config)
     try {
         qlib::init();
         qsys::init(config.c_str());
-        // init();
-        // registerViewFactory();
+        init();
+        registerViewFactory();
 
         // setup timer
         // qlib::EventManager::getInstance()->initTimer(new ElecTimerImpl);

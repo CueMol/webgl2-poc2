@@ -68,7 +68,7 @@ target_link_libraries(node_jsbr PRIVATE ${NODE_JSBR_LINK_LIBRARIES})
 # This line will give our library file a .node extension without any "lib" prefix
 set_target_properties(node_jsbr PROPERTIES PREFIX "" SUFFIX ".node")
 
-# MCWRAPGEN_PYWRAPPERS(qsys)
+# MCWRAPGEN_PYWRAPPERS(node_jsbr)
 MCWRAPGEN_JS_WRAPPERS(node_jsbr)
 
 install(TARGETS node_jsbr
