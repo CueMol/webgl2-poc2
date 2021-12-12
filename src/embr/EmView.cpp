@@ -8,7 +8,7 @@
 
 namespace embr {
 
-EmView::EmView() : m_pCtxt(new EmDisplayContext()) {}
+EmView::EmView() : m_pCtxt(nullptr) {}
 
 EmView::EmView(const EmView &r) {}
 
@@ -161,6 +161,13 @@ void EmView::bind(const LString &id)
     EMSCRIPTEN_WEBGL_CONTEXT_HANDLE ctx =
         emscripten_webgl_create_context(id.c_str(), &attr);
     emscripten_webgl_make_context_current(ctx);
+
+    if (m_pCtxt == nullptr) {
+        m_pCtxt = MB_NEW EmDisplayContext();
+        m_pCtxt->setTargetView(this);
+    }
+    m_pCtxt->attach(ctx);
+    m_pCtxt->setCurrent();
 
     glClearColor(0, 0, 1, 1);
     // glDrawBuffer(GL_FRONT);

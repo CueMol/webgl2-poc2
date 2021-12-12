@@ -4,6 +4,7 @@
 #include <qsys/SceneManager.hpp>
 
 #include "EmDisplayList.hpp"
+#include "EmProgObjMgr.hpp"
 #include "EmProgramObject.hpp"
 #include "EmView.hpp"
 
@@ -14,16 +15,23 @@ EmDisplayContext::~EmDisplayContext()
     if (m_pDefPO) delete m_pDefPO;
 }
 
+void EmDisplayContext::setTargetView(qsys::View *pView)
+{
+    super_t::setTargetView(pView);
+    m_nViewID = pView->getUID();
+    m_nSceneID = pView->getSceneID();
+}
+
 void EmDisplayContext::init(EmView *pView)
 {
     m_pView = pView;
     setTargetView(pView);
 
-    m_pDefPO = new EmProgramObject(pView, "default");
-    qlib::MapTable<qlib::LString> file_names;
-    file_names.set("vertex", "shaders/vertex_shader.glsl");
-    file_names.set("fragment", "shaders/fragment_shader.glsl");
-    m_pDefPO->loadShaders(file_names);
+    // m_pDefPO = new EmProgramObject(pView, "default");
+    // qlib::MapTable<qlib::LString> file_names;
+    // file_names.set("vertex", "shaders/vertex_shader.glsl");
+    // file_names.set("fragment", "shaders/fragment_shader.glsl");
+    // m_pDefPO->loadShaders(file_names);
 }
 
 void EmDisplayContext::drawElem(const gfx::AbstDrawElem &data)
@@ -58,11 +66,16 @@ void EmDisplayContext::endSection()
 
 bool EmDisplayContext::setCurrent()
 {
+    if (isCurrent()) return true;
+
+    if (!emscripten_webgl_make_context_current(m_ctxt)) return false;
+
     return true;
 }
+
 bool EmDisplayContext::isCurrent() const
 {
-    return true;
+    return (emscripten_webgl_get_current_context() == m_ctxt);
 }
 bool EmDisplayContext::isFile() const
 {
@@ -167,5 +180,17 @@ void EmDisplayContext::startTriangleFan() {}
 void EmDisplayContext::startQuadStrip() {}
 void EmDisplayContext::startQuads() {}
 void EmDisplayContext::end() {}
+
+EmProgramObject *EmDisplayContext::createProgramObject(const LString &name)
+{
+    EmProgObjMgr *pMgr = EmProgObjMgr::getInstance();
+    return pMgr->createProgramObject(name, this);
+}
+
+EmProgramObject *EmDisplayContext::getProgramObject(const LString &name)
+{
+    EmProgObjMgr *pMgr = EmProgObjMgr::getInstance();
+    return pMgr->getProgramObject(name, this);
+}
 
 }  // namespace embr

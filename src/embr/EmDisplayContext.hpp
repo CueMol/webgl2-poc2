@@ -1,6 +1,7 @@
 #pragma once
 
 #include <gfx/DisplayContext.hpp>
+#include <emscripten/html5.h>
 
 #include "embr.hpp"
 
@@ -14,6 +15,12 @@ class EmDisplayContext : public gfx::DisplayContext
 private:
     typedef gfx::DisplayContext super_t;
 
+    /// UID of the target view
+    qlib::uid_t m_nViewID;
+
+    /// UID of the target scene
+    qlib::uid_t m_nSceneID;
+
     EmView *m_pView;
 
     /// Default program object (shader)
@@ -25,11 +32,19 @@ private:
 
     qlib::LString m_sectionName;
 
+    EMSCRIPTEN_WEBGL_CONTEXT_HANDLE m_ctxt;
+    
 public:
     EmDisplayContext() : m_pView(nullptr), m_pDefPO(nullptr) {}
     virtual ~EmDisplayContext();
 
     void init(EmView *pView);
+    void attach(EMSCRIPTEN_WEBGL_CONTEXT_HANDLE ctxt) { m_ctxt = ctxt; }
+
+    inline qlib::uid_t getViewID() const { return m_nViewID; }
+    inline qlib::uid_t getSceneID() const { return m_nSceneID; }
+
+    virtual void setTargetView(qsys::View *pView);
 
     virtual void drawElem(const gfx::AbstDrawElem &data);
 
@@ -89,6 +104,22 @@ public:
         v.w() = 0.0;
         mtop.xform4D(v);
     }
+
+    ///////////////////////////////
+    // OpenGL SL support
+
+  public:
+    /// Create the GLSL program object.
+    /// If program object with the same name already exists, returns it.
+    /// @param name name of the program objec.
+    /// @return program object having the specified name.
+    EmProgramObject *createProgramObject(const LString &name);
+
+    /// Get the GLSL program object by name.
+    /// @param name name of the program object.
+    /// @return program object having the specified name.
+    EmProgramObject *getProgramObject(const LString &name);
+
 };
 
 }  // namespace embr

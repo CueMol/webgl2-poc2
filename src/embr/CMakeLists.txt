@@ -14,6 +14,8 @@ SET(EMBR_SRCS
   EmDisplayContext.cpp
   EmProgramObject.cpp
   EmDisplayList.cpp
+  EmShaderObject.cpp
+  EmProgObjMgr.cpp
 )
 
 #####
