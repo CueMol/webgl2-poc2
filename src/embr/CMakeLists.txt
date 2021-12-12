@@ -43,7 +43,9 @@ SET(EMBR_LINK_LIBRARIES
   )
 
 # SET(EMCC_PRE_JS "--pre-js ${CMAKE_CURRENT_SOURCE_DIR}/pre.js")
-SET(EMCC_PRE_JS "--preload-file ${CMAKE_SOURCE_DIR}/src/data@ --pre-js ${CMAKE_CURRENT_SOURCE_DIR}/pre.js")
+SET(EMCC_PRE_JS
+  "--preload-file ${CMAKE_SOURCE_DIR}/src/data@/ --preload-file ${CMAKE_SOURCE_DIR}/shaders@/shaders"
+)
 
 add_executable(embr ${EMBR_SRCS} ${MCWG_HEADERS})
 target_link_libraries(embr PRIVATE ${EMBR_LINK_LIBRARIES})

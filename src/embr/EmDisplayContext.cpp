@@ -6,9 +6,14 @@
 #include "EmDisplayList.hpp"
 #include "EmProgObjMgr.hpp"
 #include "EmProgramObject.hpp"
+#include "EmVBO.hpp"
 #include "EmView.hpp"
 
 namespace embr {
+
+using gfx::AbstDrawElem;
+using gfx::DisplayContext;
+using gfx::DrawElem;
 
 EmDisplayContext::~EmDisplayContext()
 {
@@ -27,25 +32,106 @@ void EmDisplayContext::init(EmView *pView)
     m_pView = pView;
     setTargetView(pView);
 
-    // m_pDefPO = new EmProgramObject(pView, "default");
-    // qlib::MapTable<qlib::LString> file_names;
-    // file_names.set("vertex", "shaders/vertex_shader.glsl");
-    // file_names.set("fragment", "shaders/fragment_shader.glsl");
-    // m_pDefPO->loadShaders(file_names);
+    m_pDefPO = createProgramObject("default");
+    m_pDefPO->loadShader("vert", "/shaders/vertex_shader.glsl", GL_VERTEX_SHADER);
+    m_pDefPO->loadShader("frag", "/shaders/fragment_shader.glsl", GL_FRAGMENT_SHADER);
+    m_pDefPO->link();
+
+    m_pDefPO->enable();
+    // m_pDefPO->setUniform("enable_lighting", 0);
+    // m_pDefPO->setUniformF("frag_alpha", 1.0);
+    m_pDefPO->disable();
 }
 
 void EmDisplayContext::drawElem(const gfx::AbstDrawElem &data)
 {
-    // auto pda = static_cast<const gfx::AbstDrawAttrs *>(&data);
-    // auto pImpl = static_cast<EmVBOImpl *>(data.getVBO());
-    // if (!pImpl) {
-    //     auto name = LString::format("%s_%p", m_sectionName.c_str(), pda);
-    //     pImpl = new EmVBOImpl(m_pView, name, *pda);
-    //     data.setVBO(pImpl);
-    // }
-    // pImpl->drawBuffer(m_pView, data.isUpdated());
-    // // printf("EmDisplayContext::drawElem\n");
-    // data.setUpdated(false);
+    auto &ada = *static_cast<const gfx::AbstDrawAttrs *>(&data);
+
+    int itype = ada.getType();
+    GLuint nvbo = 0;
+    GLuint nvbo_ind = 0;
+
+    if (ada.getVBO() == NULL) {
+        // Make VBO for attribute array
+        glGenBuffers(1, &nvbo);
+        EmVBORep *pRep = MB_NEW EmVBORep();
+        pRep->m_nBufID = nvbo;
+        pRep->m_nSceneID = getSceneID();
+        ada.setVBO(pRep);
+
+        // Init VBO & copy data
+        glBindBuffer(GL_ARRAY_BUFFER, nvbo);
+        glBufferData(GL_ARRAY_BUFFER, ada.getDataSize(), ada.getData(), GL_STATIC_DRAW);
+
+        if (itype == AbstDrawElem::VA_ATTR_INDS) {
+            // Make VBO for indices
+            glGenBuffers(1, &nvbo_ind);
+            EmVBORep *pRep = MB_NEW EmVBORep();
+            pRep->m_nBufID = nvbo_ind;
+            pRep->m_nSceneID = getSceneID();
+            ada.setIndexVBO(pRep);
+
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, nvbo_ind);
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, ada.getIndDataSize(),
+                         ada.getIndData(), GL_STATIC_DRAW);
+        }
+        LOG_DPRINTLN("EmVBO %d create OK.", nvbo);
+    } else {
+        EmVBORep *pRep = (EmVBORep *)ada.getVBO();
+        nvbo = pRep->m_nBufID;
+        glBindBuffer(GL_ARRAY_BUFFER, nvbo);
+
+        if (itype == AbstDrawElem::VA_ATTR_INDS) {
+            EmVBORep *pRep = (EmVBORep *)ada.getIndexVBO();
+            nvbo_ind = pRep->m_nBufID;
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, nvbo_ind);
+        }
+
+        if (ada.isUpdated()) {
+            glBufferSubData(GL_ARRAY_BUFFER, 0, ada.getDataSize(), ada.getData());
+            if (itype == AbstDrawElem::VA_ATTR_INDS) {
+                glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, ada.getIndDataSize(),
+                                ada.getIndData());
+            }
+        }
+        // LOG_DPRINTLN("EmVBO %d bind OK.", nvbo);
+    }
+
+    size_t nattr = ada.getAttrSize();
+    for (int i = 0; i < nattr; ++i) {
+        int al = ada.getAttrLoc(i);
+        int az = ada.getAttrElemSize(i);
+        int at = ada.getAttrTypeID(i);
+        int ap = ada.getAttrPos(i);
+        glVertexAttribPointer(al, az, convGLConsts(at), convGLNorm(at),
+                              ada.getElemSize(), (void *)ap);
+        glEnableVertexAttribArray(al);
+        // LOG_DPRINTLN("glVertexAttribPointer(%d, %d, %d, %d) OK.", al, az, at, ap);
+    }
+
+    GLenum mode = convDrawMode(ada.getDrawMode());
+    size_t indsz = ada.getIndElemSize();
+    if (itype == AbstDrawElem::VA_ATTR_INDS) {
+        if (indsz == 2)
+            glDrawElements(mode, ada.getIndSize(), GL_UNSIGNED_SHORT, 0);
+        else if (indsz == 4)
+            glDrawElements(mode, ada.getIndSize(), GL_UNSIGNED_INT, 0);
+        else {
+            LOG_DPRINTLN("unsupported index element size %d", indsz);
+            MB_ASSERT(false);
+        }
+    } else {
+        glDrawArrays(mode, 0, ada.getSize());
+        // LOG_DPRINTLN("glDrawArrays(%d, %d) OK.", mode, ada.getSize());
+    }
+
+    for (int i = 0; i < nattr; ++i) {
+        int al = ada.getAttrLoc(i);
+        glDisableVertexAttribArray(al);
+    }
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 void EmDisplayContext::startSection(const qlib::LString &section_name)
@@ -53,7 +139,6 @@ void EmDisplayContext::startSection(const qlib::LString &section_name)
     m_sectionName = section_name;
     if (!m_pDefPO) return;
     m_pDefPO->enable();
-    // m_pDefPO->setUniformF("frag_alpha", getAlpha());
 }
 
 void EmDisplayContext::endSection()
@@ -89,7 +174,7 @@ gfx::DisplayContext *EmDisplayContext::createDisplayList()
     // Targets the same view as this
     pdl->setTargetView(getTargetView());
 
-    printf("createDisplayList OK\n");
+    LOG_DPRINTLN("createDisplayList OK\n");
     return pdl;
 }
 

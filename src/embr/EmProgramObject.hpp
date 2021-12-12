@@ -60,7 +60,7 @@ public:
     {
         GLint ul = glGetUniformLocation(m_hPO, name);
         if (ul == -1) {
-            MB_DPRINTLN("Cannot find uniform location: %s", name);
+            LOG_DPRINTLN("Cannot find uniform location: %s", name);
         }
         return ul;
     }
@@ -74,7 +74,7 @@ public:
     {
         GLint al = glGetAttribLocation(m_hPO, name);
         if (al == -1) {
-            MB_DPRINTLN("Cannot find attribute location: %s", name);
+            LOG_DPRINTLN("Cannot find attribute location: %s", name);
         }
         return al;
     }

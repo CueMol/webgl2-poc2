@@ -366,4 +366,4 @@ bool EmDisplayList::isDisplayList() const
     return true;
 }
 
-}  // namespace node_jsbr
+}  // namespace embr

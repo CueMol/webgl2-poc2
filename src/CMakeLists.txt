@@ -5,6 +5,7 @@ find_package(FLEX REQUIRED)
 
 if (EMSCRIPTEN)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s USE_BOOST_HEADERS=1 -fexceptions")
+  add_compile_definitions(USE_LOG_STDIO)
 endif (EMSCRIPTEN)
 
 find_package(Boost 1.50.0 REQUIRED)

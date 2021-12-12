@@ -153,23 +153,23 @@ void EmProgramObject::setMatrix(const char *name, const qlib::Matrix4D &mat)
     GLfloat m[16];
 
     m[0] = mat.aij(1, 1);
-    m[4] = mat.aij(1, 2);
-    m[8] = mat.aij(1, 3);
-    m[12] = mat.aij(1, 4);
+    m[1] = mat.aij(1, 2);
+    m[2] = mat.aij(1, 3);
+    m[3] = mat.aij(1, 4);
 
-    m[1] = mat.aij(2, 1);
+    m[4] = mat.aij(2, 1);
     m[5] = mat.aij(2, 2);
-    m[9] = mat.aij(2, 3);
-    m[13] = mat.aij(2, 4);
+    m[6] = mat.aij(2, 3);
+    m[7] = mat.aij(2, 4);
 
-    m[2] = mat.aij(3, 1);
-    m[6] = mat.aij(3, 2);
+    m[8] = mat.aij(3, 1);
+    m[9] = mat.aij(3, 2);
     m[10] = mat.aij(3, 3);
-    m[14] = mat.aij(3, 4);
+    m[11] = mat.aij(3, 4);
 
-    m[3] = mat.aij(4, 1);
-    m[7] = mat.aij(4, 2);
-    m[11] = mat.aij(4, 3);
+    m[12] = mat.aij(4, 1);
+    m[13] = mat.aij(4, 2);
+    m[14] = mat.aij(4, 3);
     m[15] = mat.aij(4, 4);
 
     setMatrix4fv(name, 1, GL_FALSE, m);

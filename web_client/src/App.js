@@ -1,8 +1,20 @@
-import { useEffect } from 'react';
+import React, { useEffect, useState, createRef } from 'react'
+
 import Utils from './libs/cuemol';
 import MolView from "./MolView";
 
+function updateMolViewSize(canvas, vw, dpr) {
+    let {width, height} = canvas.getBoundingClientRect();
+    console.log(`canvas resize: ${width} x ${height}`);
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+    if (vw !== null) {
+        vw.sizeChanged(width, height);
+    }
+}
+
 export default function App() {
+    let view = null;
     window.Utils = Utils;
     window.onCueMolLoaded = (utils) => {
         // let vecobj = utils.createObject("Vector");
@@ -35,11 +47,28 @@ export default function App() {
 
         let vw = scene.createView();
         vw.name = "Primary View";
+        view = vw;
 
         const molview = document.getElementById('mol_view');
         console.log(`molview: ${molview}`);
         vw.bind("#mol_view");
         
+        const canvas = document.getElementById('mol_view');
+        updateMolViewSize(canvas, vw, window.devicePixelRatio || 1.0);
+        if (window.devicePixelRatio) {
+            vw.setSclFac(window.devicePixelRatio, window.devicePixelRatio);
+            // vw.resetSclFac();
+        }
+
+        //////////
+
+        let obj = utils.createObject("Object");
+        scene.addObject(obj);
+        console.log(`Object created UID: ${obj.getUID()}, name: ${obj.name}`);
+
+        // let rend = obj.createRenderer("test");
+        let rend = obj.createRenderer("dltest");
+        console.log(`Renderer created UID: ${rend.getUID()}, name: ${rend.name}`);
     };
 
     useEffect(()=>{
@@ -50,9 +79,45 @@ export default function App() {
         scriptUrl.src = 'load_wasm.js';
 
         head.appendChild(scriptUrl);
-    });
+
+    }, []);
+
+    let then = 0;
+
+    let timer_update_canvas = (timestamp) => {
+        timestamp *= 0.001;
+        const deltaTime = timestamp - then;
+        then = timestamp;
+        const fps = 1 / deltaTime;
+        // fpsElem.textContent = fps.toFixed(1);
+        // console.log(`fps: ${fps}`);
+        if (view !== null) {
+            // view.invalidate();
+            view.checkAndUpdate();
+        }
+
+        requestAnimationFrame(timer_update_canvas);
+    }
+    
+    useEffect( () => {
+        requestAnimationFrame(timer_update_canvas);
+    }, []);
+
+    useEffect(()=>{
+        const canvas = document.getElementById('mol_view');
+        const placeholder = document.getElementById('placeholder');
+
+        const resizeObserver = new ResizeObserver(entries => {
+            updateMolViewSize(canvas, view, window.devicePixelRatio || 1.0);
+        });
+        resizeObserver.observe(canvas);
+
+        updateMolViewSize(canvas, view, window.devicePixelRatio || 1.0);
+
+    }, []);
+
     return (<div className="App">
-            XXX
+                XXX
             <MolView id="mol_view"/>
             </div>
            );
