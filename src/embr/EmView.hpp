@@ -5,12 +5,14 @@
 #include <qsys/View.hpp>
 #include <qsys/qsys.hpp>
 
+#include "embr.hpp"
+
 // #include "MouseEventHandler.hpp"
 
 namespace embr {
 
 class EmDisplayContext;
-using Matrix4F = qlib::MatrixND<4, float>;
+// using Matrix4F = qlib::MatrixND<4, float>;
 
 class EmView : public qsys::View
 {
@@ -20,6 +22,8 @@ private:
     EmDisplayContext *m_pCtxt;
 
     // MouseEventHandler m_meh;
+
+    qlib::Matrix4D m_projMat, m_modelMat;
 
 public:
     EmView();
@@ -49,7 +53,6 @@ public:
     //////////
 
     void bind(const LString &id);
-
 };
 
 class EmViewFactory : public qsys::ViewFactory

@@ -9,9 +9,11 @@ include_directories(
 SET(EMBR_SRCS
   embr.cpp
   init_cuemol.cpp
-  # wrapper.cpp
   direct.cpp
   EmView.cpp
+  EmDisplayContext.cpp
+  EmProgramObject.cpp
+  EmDisplayList.cpp
 )
 
 #####
@@ -44,7 +46,7 @@ SET(EMCC_PRE_JS "--preload-file ${CMAKE_SOURCE_DIR}/src/data@ --pre-js ${CMAKE_C
 add_executable(embr ${EMBR_SRCS} ${MCWG_HEADERS})
 target_link_libraries(embr PRIVATE ${EMBR_LINK_LIBRARIES})
 
-set_target_properties(embr PROPERTIES LINK_FLAGS "--no-entry -s USE_WEBGL2=1 -s EXPORT_ES6=1 -s MODULARIZE=1 -s USE_BOOST_HEADERS=1 -fexceptions ${EMCC_PRE_JS} -s EXPORTED_RUNTIME_METHODS=intArrayFromString,allocate,ALLOC_NORMAL,UTF8ToString")
+set_target_properties(embr PROPERTIES LINK_FLAGS "--no-entry -s USE_WEBGL2=1 -s MIN_WEBGL_VERSION=2 -s MAX_WEBGL_VERSION=2 -s EXPORT_ES6=1 -s MODULARIZE=1 -s USE_BOOST_HEADERS=1 -fexceptions ${EMCC_PRE_JS} -s EXPORTED_RUNTIME_METHODS=intArrayFromString,allocate,ALLOC_NORMAL,UTF8ToString")
 #
 #
 MCWRAPGEN_JS_WRAPPERS(embr)
