@@ -88,13 +88,12 @@ void EmView::setUpProjMat(int cx, int cy)
     float vw = zoom / 2.0f;
     float fasp = float(cx) / float(cy);
 
-    printf("ElecView.setUpProjMat> CX=%d, CY=%d, Vw=%f, Fasp=%f\n", cx, cy, vw,
-                 fasp);
+    printf("EmView.setUpProjMat> CX=%d, CY=%d, Vw=%f, Fasp=%f\n", cx, cy, vw, fasp);
 
     int bcx = convToBackingX(cx);
     int bcy = convToBackingY(cy);
 
-    printf("ElecView.setUpProjMat> BCX=%d, BCY=%d\n", bcx, bcy);
+    printf("EmView.setUpProjMat> BCX=%d, BCY=%d\n", bcx, bcy);
 
     glViewport(0, 0, bcx, bcy);
 
@@ -115,10 +114,8 @@ void EmView::setUpProjMat(int cx, int cy)
         const float tz = -(far + near) / (far - near);
 
         GLfloat m[16] = {
-            a, 0, 0, tx,
-            0, b, 0, ty,
-            0, 0, c, tz,
-            0, 0, 0, 1
+            a, 0, 0,  tx, 0, b, 0, ty, 0,
+            0, c, tz, 0,  0, 0, 1
             // tx, ty, tz, 1
         };
 
@@ -128,7 +125,7 @@ void EmView::setUpProjMat(int cx, int cy)
         glUniformMatrix4fv(uloc, 1, GL_FALSE, m);
         // pdef->setMatrix("projection", m_projMat);
         // pdef->setMatrix4fv("projection", 1, GL_FALSE, m);
-        
+
         // m_projMat.aij(1, 1) = a;
         // m_projMat.aij(2, 1) = 0;
         // m_projMat.aij(3, 1) = 0;
@@ -226,6 +223,89 @@ void EmView::bind(const LString &id)
 
     init();
     LOG_DPRINTLN("EmView::bind(%s) OK", id.c_str());
+}
+
+void EmView::onMouseDown(double clientX, double clientY, double screenX,
+                           double screenY, int modif)
+{
+    printf("onMouseDown (%f, %f) (%f, %f) %x\n", clientX, clientY, screenX, screenY,
+    modif);
+    qsys::InDevEvent ev;
+    setupInDevEvent(clientX, clientY, screenX, screenY, modif, ev);
+    dispatchMouseEvent(DME_MOUSE_DOWN, ev);
+}
+
+void EmView::onMouseUp(double clientX, double clientY, double screenX, double screenY,
+                         int modif)
+{
+    printf("onMouseUp (%f, %f) (%f, %f) %x\n", clientX, clientY, screenX,
+    screenY,modif);
+    qsys::InDevEvent ev;
+    setupInDevEvent(clientX, clientY, screenX, screenY, modif, ev);
+    dispatchMouseEvent(DME_MOUSE_UP, ev);
+}
+
+void EmView::onMouseMove(double clientX, double clientY, double screenX,
+                           double screenY, int modif)
+{
+    printf("onMouseMove (%f, %f) (%f, %f) %x\n", clientX, clientY, screenX,
+    screenY,modif);
+    qsys::InDevEvent ev;
+    setupInDevEvent(clientX, clientY, screenX, screenY, modif, ev);
+    dispatchMouseEvent(DME_MOUSE_MOVE, ev);
+}
+
+void EmView::setupInDevEvent(double clientX, double clientY, double screenX,
+                               double screenY, int amodif, qsys::InDevEvent &ev)
+{
+    ev.setX(int(clientX));
+    ev.setY(int(clientY));
+
+    ev.setRootX(int(screenX));
+    ev.setRootY(int(screenY));
+
+    int modif = 0;
+
+    if (amodif & 32) modif |= qsys::InDevEvent::INDEV_CTRL;
+    if (amodif & 64) modif |= qsys::InDevEvent::INDEV_SHIFT;
+    if (amodif & 1) modif |= qsys::InDevEvent::INDEV_LBTN;
+    if (amodif & 2) modif |= qsys::InDevEvent::INDEV_RBTN;
+    if (amodif & 4) modif |= qsys::InDevEvent::INDEV_MBTN;
+
+    ev.setModifier(modif);
+}
+
+void EmView::dispatchMouseEvent(int nType, qsys::InDevEvent &ev)
+{
+    switch (nType) {
+            // mouse down event
+        case DME_MOUSE_DOWN:
+            m_meh.buttonDown(ev);
+            break;
+
+            // mouse move/dragging event
+        case DME_MOUSE_MOVE:
+            if (!m_meh.move(ev)) return;  // skip event invokation
+            break;
+
+            // mouse up event
+        case DME_MOUSE_UP:
+            if (!m_meh.buttonUp(ev)) {
+                return;  // skip event invokation
+            }
+            break;
+
+        case DME_WHEEL:
+            // wheel events
+            break;
+
+            // should not be happen
+        default:
+            MB_DPRINTLN("unknown nType %d", nType);
+            return;
+    }
+
+    fireInDevEvent(ev);
 }
 
 void registerViewFactory()

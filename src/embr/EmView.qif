@@ -12,4 +12,7 @@ runtime_class EmView extends View
 
     void bind(string);
 
+    void onMouseDown(real clientX, real clientY, real screenX, real screenY, integer modif) => onMouseDown;
+    void onMouseUp(real clientX, real clientY, real screenX, real screenY, integer modif) => onMouseUp;
+    void onMouseMove(real clientX, real clientY, real screenX, real screenY, integer modif) => onMouseMove;
 };

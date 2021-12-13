@@ -63,6 +63,7 @@ command/LoadObjectCommand.cpp
 command/CmdMgr.cpp
 TestRenderer.cpp
 TestDLRenderer.cpp
+MouseEventHandler.cpp
   )
 
 # CueMol interface definitions for MCWRAPGEN

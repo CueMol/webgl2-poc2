@@ -1,13 +1,12 @@
 #pragma once
 
 #include <qlib/MatrixND.hpp>
+#include <qsys/MouseEventHandler.hpp>
 #include <qsys/Scene.hpp>
 #include <qsys/View.hpp>
 #include <qsys/qsys.hpp>
 
 #include "embr.hpp"
-
-// #include "MouseEventHandler.hpp"
 
 namespace embr {
 
@@ -53,6 +52,26 @@ public:
     //////////
 
     void bind(const LString &id);
+
+    void onMouseDown(double clientX, double clientY, double screenX, double screenY,
+                     int modif);
+    void onMouseUp(double clientX, double clientY, double screenX, double screenY,
+                   int modif);
+    void onMouseMove(double clientX, double clientY, double screenX, double screenY,
+                     int modif);
+
+private:
+    qsys::MouseEventHandler m_meh;
+
+    static const int DME_MOUSE_DOWN = 0;
+    static const int DME_MOUSE_MOVE = 1;
+    static const int DME_MOUSE_UP = 2;
+    static const int DME_WHEEL = 3;
+    static const int DME_DBCHK_TIMEUP = 4;
+
+    void setupInDevEvent(double clientX, double clientY, double screenX, double screenY,
+                         int modif, qsys::InDevEvent &ev);
+    void dispatchMouseEvent(int nType, qsys::InDevEvent &ev);
 };
 
 class EmViewFactory : public qsys::ViewFactory

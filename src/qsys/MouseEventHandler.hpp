@@ -3,19 +3,16 @@
 //
 //
 
-#ifndef MOUSE_EVENT_HANDLER_HPP_INCLUDED
-#define MOUSE_EVENT_HANDLER_HPP_INCLUDED
+#pragma once
 
 #include <boost/circular_buffer.hpp>
 #include <qlib/EventManager.hpp>
 #include <qlib/Utils.hpp>
-#include <qsys/InDevEvent.hpp>
 
-#include "node_jsbr.hpp"
+#include "InDevEvent.hpp"
+#include "qsys.hpp"
 
-namespace node_jsbr {
-
-using qsys::InDevEvent;
+namespace qsys {
 
 /// Utility class for seting up mouse event object (for dragging info)
 class MouseEventHandler
@@ -71,6 +68,4 @@ private:
     void calcVelocity(InDevEvent &ev, qlib::time_value);
 };
 
-}  // namespace node_jsbr
-
-#endif
+}  // namespace qsys
