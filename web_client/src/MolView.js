@@ -102,7 +102,7 @@ export default function MolView({id}) {
         if (canvasRef.current && canvasRef.current.view) {
             let view = canvasRef.current.view;
             // view.invalidate();
-            view.rotateView(0, 1, 0);
+            // view.rotateView(0, 1, 0);
             view.checkAndUpdate();
         }
 

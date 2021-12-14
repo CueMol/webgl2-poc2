@@ -14,6 +14,7 @@
 #include <qlib/qlib.hpp>
 #include <qsys/qsys.hpp>
 
+#include "EmTimerImpl.hpp"
 #include "EmView.hpp"
 #include "embr.hpp"
 #include "wrapper.hpp"
@@ -37,7 +38,7 @@ bool initCueMol(const std::string &config)
         registerViewFactory();
 
         // setup timer
-        // qlib::EventManager::getInstance()->initTimer(new ElecTimerImpl);
+        qlib::EventManager::getInstance()->initTimer(new EmTimerImpl);
 
     } catch (const qlib::LException &e) {
         printf("XXXXX\n");

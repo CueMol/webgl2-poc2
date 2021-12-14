@@ -1,43 +1,9 @@
 #pragma once
 
 #include <gfx/DrawAttrArray.hpp>
+#include "EmView.hpp"
 
 namespace embr {
-
-class EmVBORep : public gfx::VBORep
-{
-public:
-    qlib::uid_t m_nSceneID;
-    GLuint m_nBufID;
-
-    virtual ~EmVBORep()
-    {
-        qsys::ScenePtr rsc = qsys::SceneManager::getSceneS(m_nSceneID);
-        if (rsc.isnull()) {
-            MB_DPRINTLN("OglVBO> unknown scene, VBO %d cannot be deleted", m_nBufID);
-            return;
-        }
-
-        qsys::Scene::ViewIter viter = rsc->beginView();
-        if (viter == rsc->endView()) {
-            MB_DPRINTLN("OglVBO> no view, VBO %d cannot be deleted", m_nBufID);
-            return;
-        }
-
-        qsys::ViewPtr rvw = viter->second;
-        if (rvw.isnull()) {
-            // If any views aren't found, it is no problem,
-            // because the parent context (and also all DLs) may be already destructed.
-            return;
-        }
-        gfx::DisplayContext *pctxt = rvw->getDisplayContext();
-        pctxt->setCurrent();
-
-        GLuint buffers[1];
-        buffers[0] = m_nBufID;
-        glDeleteBuffers(1, buffers);
-    }
-};
 
 int convGLConsts(int id)
 {
@@ -118,5 +84,76 @@ GLenum convDrawMode(int nMode)
     }
     return mode;
 }
+
+class EmVBORep : public gfx::VBORep
+{
+public:
+    qlib::uid_t m_nViewID;
+    GLuint m_nBufID;
+    GLuint m_nVAO;
+    bool m_bDataInitDone;
+
+    EmVBORep(EmView *pView, const gfx::AbstDrawAttrs &data)
+        : m_nViewID(pView->getUID()), m_bDataInitDone(false)
+    {
+        glGenBuffers(1, &m_nBufID);
+        glGenVertexArrays(1, &m_nVAO);
+
+        // setup VAO
+        glBindVertexArray(m_nVAO);
+        glBindBuffer(GL_ARRAY_BUFFER, m_nBufID);
+        size_t nattr = data.getAttrSize();
+        for (size_t i = 0; i < nattr; ++i) {
+            int al = data.getAttrLoc(i);
+            int az = data.getAttrElemSize(i);
+            int at = data.getAttrTypeID(i);
+            int ap = data.getAttrPos(i);
+            glEnableVertexAttribArray(al);
+            glVertexAttribPointer(al, az, convGLConsts(at), convGLNorm(at),
+                                  data.getElemSize(), (void *)ap);
+        }
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
+
+        data.setVBO(this);
+    }
+
+    void drawBuffer(const gfx::AbstDrawAttrs &data)
+    {
+        glBindBuffer(GL_ARRAY_BUFFER, m_nBufID);
+        if (!m_bDataInitDone) {
+            // Init VBO & copy data
+            glBufferData(GL_ARRAY_BUFFER, data.getDataSize(), data.getData(),
+                         GL_STATIC_DRAW);
+        } else {
+            if (data.isUpdated()) {
+                glBufferSubData(GL_ARRAY_BUFFER, 0, data.getDataSize(), data.getData());
+            }
+        }
+
+        GLenum mode = convDrawMode(data.getDrawMode());
+
+        glBindVertexArray(m_nVAO);
+        glDrawArrays(mode, 0, data.getSize());
+        glBindVertexArray(0);
+    }
+
+    virtual ~EmVBORep()
+    {
+        qsys::ViewPtr pView = qsys::SceneManager::getViewS(m_nViewID);
+        if (pView.isnull()) {
+            // If any views aren't found, it is no problem,
+            // because the parent context (and also all DLs) may be already destructed.
+            return;
+        }
+        gfx::DisplayContext *pctxt = pView->getDisplayContext();
+        pctxt->setCurrent();
+
+        GLuint buffers[1];
+        buffers[0] = m_nBufID;
+        glDeleteBuffers(1, buffers);
+    }
+};
+
 
 }  // namespace embr
