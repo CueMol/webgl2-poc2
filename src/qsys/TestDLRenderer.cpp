@@ -55,8 +55,6 @@ void TestDLRenderer::render(DisplayContext *pdl)
 
     pdl->end();
 
-    return;
-
     pdl->startLines();
 
     pdl->color(0, 1, 0);

@@ -20,9 +20,43 @@ class EmView : public qsys::View
 private:
     EmDisplayContext *m_pCtxt;
 
-    // MouseEventHandler m_meh;
-
     qlib::Matrix4D m_projMat, m_modelMat;
+
+    // UBO for common uniforms (proj/model matrix)
+    GLuint m_nComUBO;
+
+    // sizes of the common uniforms
+    static constexpr size_t SZ_PROJ_MAT = 4 * 4 * sizeof(float);
+    static constexpr size_t SZ_MODEL_MAT = 4 * 4 * sizeof(float);
+
+    uint8_t m_uboData[SZ_MODEL_MAT + SZ_PROJ_MAT];
+
+    void setUboData(const Matrix4D &mat, size_t offset)
+    {
+        auto m = reinterpret_cast<float *>(&m_uboData[offset]);
+        m[0] = mat.aij(1, 1);
+        m[1] = mat.aij(1, 2);
+        m[2] = mat.aij(1, 3);
+        m[3] = mat.aij(1, 4);
+
+        m[4] = mat.aij(2, 1);
+        m[5] = mat.aij(2, 2);
+        m[6] = mat.aij(2, 3);
+        m[7] = mat.aij(2, 4);
+
+        m[8] = mat.aij(3, 1);
+        m[9] = mat.aij(3, 2);
+        m[10] = mat.aij(3, 3);
+        m[11] = mat.aij(3, 4);
+
+        m[12] = mat.aij(4, 1);
+        m[13] = mat.aij(4, 2);
+        m[14] = mat.aij(4, 3);
+        m[15] = mat.aij(4, 4);
+    }
+
+public:
+    static constexpr int MVP_MAT_LOC = 0;
 
 public:
     EmView();

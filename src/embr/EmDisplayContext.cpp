@@ -40,6 +40,8 @@ void EmDisplayContext::init(EmView *pView)
     m_pDefPO->enable();
     // m_pDefPO->setUniform("enable_lighting", 0);
     // m_pDefPO->setUniformF("frag_alpha", 1.0);
+    const auto mvp_mat_index = glGetUniformBlockIndex(m_pDefPO->getHandle(), "mvp_matrix");
+    glUniformBlockBinding(m_pDefPO->getHandle(), mvp_mat_index, EmView::MVP_MAT_LOC);
     m_pDefPO->disable();
 }
 

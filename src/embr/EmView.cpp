@@ -31,6 +31,13 @@ bool EmView::init()
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_BLEND);
 
+    // Setup common UBO
+    glGenBuffers(1, &m_nComUBO);
+    glBindBuffer(GL_UNIFORM_BUFFER, m_nComUBO);
+    glBufferData(GL_UNIFORM_BUFFER, SZ_PROJ_MAT + SZ_MODEL_MAT, NULL, GL_DYNAMIC_DRAW); 
+    glBindBufferBase(GL_UNIFORM_BUFFER, MVP_MAT_LOC, m_nComUBO);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
     setUpProjMat(-1, -1);
     // setUpLightColor();
 
@@ -53,9 +60,15 @@ void EmView::setUpModelMat(int nid)
     m_modelMat.matprod(qlib::Matrix4D::makeTransMat(-getViewCenter()));
 
     // LOG_DPRINTLN("modelMat: %s", m_modelMat.toString().c_str());
-    auto pdef = m_pCtxt->getProgramObject("default");
-    pdef->enable();
-    pdef->setMatrix("model", m_modelMat);
+    // auto pdef = m_pCtxt->getProgramObject("default");
+    // pdef->enable();
+    // pdef->setMatrix("model", m_modelMat);
+
+    setUboData(m_modelMat, 0);
+    glBindBuffer(GL_UNIFORM_BUFFER, m_nComUBO);
+    // glBindBufferBase(GL_UNIFORM_BUFFER, MVP_MAT_LOC, m_nComUBO);
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, SZ_MODEL_MAT, m_uboData);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
 /// Setup projection matrix (View interface)
@@ -119,43 +132,15 @@ void EmView::setUpProjMat(int cx, int cy)
             // tx, ty, tz, 1
         };
 
-        auto pdef = m_pCtxt->getProgramObject("default");
-        pdef->enable();
-        auto uloc = pdef->getUniformLocation("projection");
-        glUniformMatrix4fv(uloc, 1, GL_FALSE, m);
-        // pdef->setMatrix("projection", m_projMat);
-        // pdef->setMatrix4fv("projection", 1, GL_FALSE, m);
-
-        // m_projMat.aij(1, 1) = a;
-        // m_projMat.aij(2, 1) = 0;
-        // m_projMat.aij(3, 1) = 0;
-        // m_projMat.aij(4, 1) = 0;
-
-        // m_projMat.aij(1, 2) = 0;
-        // m_projMat.aij(2, 2) = b;
-        // m_projMat.aij(3, 2) = 0;
-        // m_projMat.aij(4, 2) = 0;
-
-        // m_projMat.aij(1, 3) = 0;
-        // m_projMat.aij(2, 3) = 0;
-        // m_projMat.aij(3, 3) = c;
-        // m_projMat.aij(4, 3) = 0;
-
-        // m_projMat.aij(1, 4) = tx;
-        // m_projMat.aij(2, 4) = ty;
-        // m_projMat.aij(3, 4) = tz;
-        // m_projMat.aij(4, 4) = 1;
+        // auto pdef = m_pCtxt->getProgramObject("default");
+        // pdef->enable();
+        // auto uloc = pdef->getUniformLocation("projection");
+        // glUniformMatrix4fv(uloc, 1, GL_FALSE, m);
+        glBindBuffer(GL_UNIFORM_BUFFER, m_nComUBO);
+        // glBindBufferBase(GL_UNIFORM_BUFFER, MVP_MAT_LOC, m_nComUBO);
+        glBufferSubData(GL_UNIFORM_BUFFER, SZ_MODEL_MAT, SZ_PROJ_MAT, m);
+        glBindBuffer(GL_UNIFORM_BUFFER, 0);
     }
-
-    // LOG_DPRINTLN("projMat: %s", m_projMat.toString().c_str());
-
-    // float *pbuf = &m_projMat.ai(1);
-    // constexpr size_t buf_size = 4 * 4;
-    // auto peer = m_peerObjRef.Value();
-    // auto env = peer.Env();
-    // auto method = peer.Get("setUpProjMat").As<Napi::Function>();
-    // method.Call(peer, {Napi::Number::New(env, bcx), Napi::Number::New(env, bcy),
-    //                    m_projArrayBuf.Value()});
 
     resetProjChgFlag();
 }
@@ -225,38 +210,38 @@ void EmView::bind(const LString &id)
     LOG_DPRINTLN("EmView::bind(%s) OK", id.c_str());
 }
 
-void EmView::onMouseDown(double clientX, double clientY, double screenX,
-                           double screenY, int modif)
+void EmView::onMouseDown(double clientX, double clientY, double screenX, double screenY,
+                         int modif)
 {
     printf("onMouseDown (%f, %f) (%f, %f) %x\n", clientX, clientY, screenX, screenY,
-    modif);
+           modif);
     qsys::InDevEvent ev;
     setupInDevEvent(clientX, clientY, screenX, screenY, modif, ev);
     dispatchMouseEvent(DME_MOUSE_DOWN, ev);
 }
 
 void EmView::onMouseUp(double clientX, double clientY, double screenX, double screenY,
-                         int modif)
+                       int modif)
 {
-    printf("onMouseUp (%f, %f) (%f, %f) %x\n", clientX, clientY, screenX,
-    screenY,modif);
+    printf("onMouseUp (%f, %f) (%f, %f) %x\n", clientX, clientY, screenX, screenY,
+           modif);
     qsys::InDevEvent ev;
     setupInDevEvent(clientX, clientY, screenX, screenY, modif, ev);
     dispatchMouseEvent(DME_MOUSE_UP, ev);
 }
 
-void EmView::onMouseMove(double clientX, double clientY, double screenX,
-                           double screenY, int modif)
+void EmView::onMouseMove(double clientX, double clientY, double screenX, double screenY,
+                         int modif)
 {
-    printf("onMouseMove (%f, %f) (%f, %f) %x\n", clientX, clientY, screenX,
-    screenY,modif);
+    printf("onMouseMove (%f, %f) (%f, %f) %x\n", clientX, clientY, screenX, screenY,
+           modif);
     qsys::InDevEvent ev;
     setupInDevEvent(clientX, clientY, screenX, screenY, modif, ev);
     dispatchMouseEvent(DME_MOUSE_MOVE, ev);
 }
 
 void EmView::setupInDevEvent(double clientX, double clientY, double screenX,
-                               double screenY, int amodif, qsys::InDevEvent &ev)
+                             double screenY, int amodif, qsys::InDevEvent &ev)
 {
     ev.setX(int(clientX));
     ev.setY(int(clientY));
