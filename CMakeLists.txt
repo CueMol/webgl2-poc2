@@ -16,6 +16,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 find_package(Perl REQUIRED)
+find_package(Python3 REQUIRED)
 
 # if (APPLE)
 #   set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9" CACHE STRING "" FORCE)
@@ -28,6 +29,7 @@ message(STATUS "BUILD_NODEJS_BINDINGS:" ${BUILD_NODEJS_BINDINGS})
 
 if (EMSCRIPTEN)
   option(BUILD_EMSCRIPTEN_BINDINGS "Build emscripten bindings" ON)
+  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/web_client/src/")
 else ()
   option(BUILD_EMSCRIPTEN_BINDINGS "Build emscripten bindings" OFF)
 endif()

@@ -1,6 +1,90 @@
 const _internal = require("bindings")("node_jsbr");
 const wrapper_utils = require("./wrapper_utils");
 
+function openFile(cm, aSc, aPath, newobj_name, newobj_type, rdr_name, aOptions)
+{
+    var i, val;
+    var StrMgr = cm.getService("StreamManager");
+    var reader = StrMgr.createHandler(rdr_name, 0);
+    reader.setPath(aPath);
+    
+    if (aOptions && "object"===typeof aOptions) {
+        for (i in aOptions) {
+	        val = aOptions[i];
+	        console.log("set reader option: "+i+"="+val);
+	        reader[i] = val;
+        }
+    }
+    
+    aSc.startUndoTxn("Open file");
+    var newobj=null;
+    try {
+        // if (newobj_type)
+	    //     newobj = newObj(newobj_type);
+        // else
+	    newobj = reader.createDefaultObj();
+        reader.attach(newobj);
+        reader.read();
+        reader.detach();
+        
+        newobj.name = newobj_name;
+        aSc.addObject(newobj);
+    }
+    catch (e) {
+        console.log("File Open Error: "+e.message);
+        aSc.rollbackUndoTxn();
+        return;
+    }
+    aSc.commitUndoTxn();
+    
+    return newobj;
+};
+
+function makeSel(cm, aSelStr, aUID)
+{
+    var sel = cm.SelCommand();
+    if (aUID) {
+        if (!sel.compile(aSelStr, aUID))
+	        return null;
+    }
+    else {
+        if (!sel.compile(aSelStr, 0))
+	        return null;
+    }
+    return sel;
+}
+
+function createRend(cm, aObj, aRendType, aRendName, aSelStr)
+{
+    var rend, sce = aObj.getScene();
+
+    var sel;
+    try {
+        if (aSelStr) {
+	        sel = makeSel(cm, aSelStr, sce.uid);
+        }
+    }
+    catch (e) {
+        console.log("createRend selstr: error="+e);
+    }
+
+    sce.startUndoTxn("Create new representation");
+    try {
+        rend = aObj.createRenderer(aRendType);
+        console.log("*** end_type: "+rend.end_captype);
+        rend.name = aRendName;
+        if ("sel" in rend && sel)
+	        rend.sel = sel;
+    }
+    catch (e) {
+        sce.rollbackUndoTxn();
+        throw e;
+    }
+    sce.commitUndoTxn();
+    
+    return rend;
+}
+
 module.exports = class Manager {
     constructor() {
         // for program object
@@ -13,7 +97,7 @@ module.exports = class Manager {
         // for VBOs
         this._draw_data = {};
 
-        _internal.initCueMol("xxx");
+        _internal.initCueMol("./src/data/sysconfig.xml");
         let sceMgr = wrapper_utils.getService("SceneManager");
         let scene = sceMgr.createScene();
         scene.setName("Test Scene");
@@ -23,14 +107,24 @@ module.exports = class Manager {
         // vw.name = "Primary View";
         this._view = vw;
 
-        let obj = wrapper_utils.createObj("Object");
-        scene.addObject(obj);
-        console.log(`Object created UID: ${obj.getUID()}, name: ${obj.name}`);
+        // let obj = wrapper_utils.createObj("Object");
+        // scene.addObject(obj);
+        // console.log(`Object created UID: ${obj.getUID()}, name: ${obj.name}`);
 
-        // let rend = obj.createRenderer("test");
-        let rend = obj.createRenderer("dltest");
-        console.log(`Renderer created UID: ${rend.getUID()}, name: ${rend.name}`);
-        this.rend = rend;
+        // // let rend = obj.createRenderer("test");
+        // let rend = obj.createRenderer("dltest");
+        // console.log(`Renderer created UID: ${rend.getUID()}, name: ${rend.name}`);
+        // this.rend = rend;
+
+        let path = "./src/data/1CRN.pdb"
+        let mol = openFile(wrapper_utils, scene, path, "1CRN.pdb", null, "pdb", null);
+        let rend = createRend(wrapper_utils, mol, "simple", "simple1", "*");
+        rend.name = "my renderer";
+        rend.applyStyles("DefaultCPKColoring");
+        let pos = rend.getCenter();
+        console.log("view center:"+pos.toString());
+        vw.setViewCenter(pos);
+
     }
 
     test() {

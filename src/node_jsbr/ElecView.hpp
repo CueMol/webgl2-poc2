@@ -7,7 +7,7 @@
 #include <qsys/View.hpp>
 #include <qsys/qsys.hpp>
 
-#include "MouseEventHandler.hpp"
+#include <qsys/MouseEventHandler.hpp>
 
 namespace node_jsbr {
 
@@ -27,8 +27,6 @@ private:
     Matrix4F m_modelMat, m_projMat;
 
     Napi::ObjectReference m_modelArrayBuf, m_projArrayBuf;
-
-    MouseEventHandler m_meh;
 
 public:
     ElecView();
@@ -73,6 +71,8 @@ public:
 
 private:
     void clear(const gfx::ColorPtr &col);
+
+    qsys::MouseEventHandler m_meh;
 
     static const int DME_MOUSE_DOWN = 0;
     static const int DME_MOUSE_MOVE = 1;

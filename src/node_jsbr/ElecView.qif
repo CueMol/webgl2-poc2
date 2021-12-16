@@ -10,7 +10,7 @@ runtime_class ElecView extends View
     scriptable;
     smartptr;
 
-    void setSclFac(real x, real y) => setSclFac;
+    // void setSclFac(real x, real y) => setSclFac;
 
     void onMouseDown(real clientX, real clientY, real screenX, real screenY, integer modif) => onMouseDown;
     void onMouseUp(real clientX, real clientY, real screenX, real screenY, integer modif) => onMouseUp;

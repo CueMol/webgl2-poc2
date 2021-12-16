@@ -17,6 +17,11 @@
 #include "node_jsbr.hpp"
 #include "wrapper.hpp"
 
+namespace molstr {
+  extern bool init();
+  extern void fini();
+}
+
 namespace node_jsbr {
 
 using qlib::LString;
@@ -62,13 +67,14 @@ Napi::Value initCueMol(const Napi::CallbackInfo &info)
 
     try {
         qlib::init();
-        // gfx::init();
         qsys::init(config.c_str());
+        molstr::init();
         init();
-        registerViewFactory();
 
         // setup timer
         qlib::EventManager::getInstance()->initTimer(new ElecTimerImpl);
+
+        registerViewFactory();
 
     } catch (const qlib::LException &e) {
         printf("XXXXX\n");

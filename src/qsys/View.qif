@@ -147,6 +147,8 @@ runtime_class View
 
   boolean removeStyleRegex(string regex);
 
+  void setSclFac(real x, real y) => setSclFac;
+  void resetSclFac() => unsetSclFac;
 };
 
 #endif

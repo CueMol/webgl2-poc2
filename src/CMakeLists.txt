@@ -1,10 +1,11 @@
 set(CMAKE_CXX_STANDARD 17)
 
-find_package(BISON REQUIRED)
-find_package(FLEX REQUIRED)
+find_package(BISON 3.8 REQUIRED)
+find_package(FLEX 2.6 REQUIRED)
 
 if (EMSCRIPTEN)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s USE_BOOST_HEADERS=1 -fexceptions")
+  add_compile_definitions(USE_LOG_STDIO)
 endif (EMSCRIPTEN)
 
 find_package(Boost 1.50.0 REQUIRED)
@@ -94,7 +95,7 @@ include("mcwgen.cmake")
 # support libraries
 add_subdirectory(pcre)
 add_subdirectory(expat)
-# add_subdirectory(zlib)
+add_subdirectory(zlib)
 # add_subdirectory(libpng)
 
 # main components/modules
@@ -109,3 +110,6 @@ endif()
 if (${BUILD_EMSCRIPTEN_BINDINGS})
   add_subdirectory(embr)
 endif()
+
+# sub components/modules
+add_subdirectory(modules/molstr)

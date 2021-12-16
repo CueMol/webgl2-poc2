@@ -13,6 +13,7 @@ use Utils;
 use Parser;
 
 our $out_dir;
+our $for_web = 1;
 our $utils_module_path = "../utils_module";
 
 ##########
@@ -48,13 +49,21 @@ sub genJsWrapper($)
   print OUT "// Javascript wrapper class for $qifname\n";
   print OUT "//\n";
   print OUT "\n";
-  print OUT "const utils = require(\"$utils_module_path\");\n";
-  print OUT "\n";
-  print OUT "class ${js_clsname} extends utils.BaseWrapper {\n";
-  print OUT "\n";
-  print OUT "  constructor(...args) {\n";
-  print OUT "    super(...args);\n";
-  print OUT "  }\n";
+  if ($for_web) {
+      print OUT "import BaseWrapper from '../base_wrapper';\n";
+      print OUT "\n";
+      print OUT "export default class ${js_clsname} extends BaseWrapper {\n";
+  }
+  else {
+      print OUT "const utils = require(\"$utils_module_path\");\n";
+      print OUT "\n";
+      print OUT "class ${js_clsname} extends utils.BaseWrapper {\n";
+      print OUT "\n";
+      print OUT "  constructor(...args) {\n";
+      print OUT "    super(...args);\n";
+      print OUT "  }\n";
+  }
+
   print OUT "\n";
 
   genJsSupclsCodeImpl($js_clsname, $qifname);
@@ -65,7 +74,11 @@ sub genJsWrapper($)
   print OUT "\n";
   genJsImplData($js_clsname, $qifname);
   print OUT "\n";
-  print OUT "module.exports = ${js_clsname};\n";
+  if ($for_web) {
+  }
+  else {
+      print OUT "module.exports = ${js_clsname};\n";
+  }
   print OUT "\n";
 
   close(OUT);

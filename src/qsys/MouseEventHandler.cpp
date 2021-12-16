@@ -6,7 +6,7 @@
 
 #include "MouseEventHandler.hpp"
 
-namespace node_jsbr {
+namespace qsys {
 
 MouseEventHandler::MouseEventHandler()
     : m_prevPt_x(0),
@@ -244,4 +244,4 @@ void MouseEventHandler::calcVelocity(InDevEvent &ev, qlib::time_value curr)
     ev.setVeloY(by);
 }
 
-}  // namespace node_jsbr
+}  // namespace qsys
