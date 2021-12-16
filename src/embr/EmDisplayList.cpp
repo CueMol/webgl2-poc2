@@ -26,9 +26,7 @@ EmDisplayList::~EmDisplayList()
 
 qlib::uid_t EmDisplayList::getSceneID() const
 {
-    printf("target view: %p\n", getTargetView());
     auto result = getTargetView()->getSceneID();
-    printf("scene ID: %d\n", result);
     return result;
 }
 
@@ -227,7 +225,12 @@ void EmDisplayList::end()
 {
     switch (m_nDrawMode) {
         case DRAWMODE_LINES:
+            printf("DRAWMODE_LINES end\n");
+            m_fPrevPosValid = false;
+            break;
+
         case DRAWMODE_LINESTRIP:
+            printf("DRAWMODE_LINESTRIP end\n");
             m_fPrevPosValid = false;
             break;
 
@@ -318,6 +321,9 @@ void EmDisplayList::recordEnd()
         size_t i = 0;
         for (const auto &elem : m_lineBuf) {
             MB_ASSERT(i < nelems);
+            printf("(%.4f, %.4f, %.4f, %.4f) (%.4f, %.4f, %.4f, %.4f)\n",
+                   elem.x, elem.y, elem.z, elem.w,
+                   elem.r, elem.g, elem.b, elem.a);
             m_pLineArray->at(i) = elem;
             ++i;
         }

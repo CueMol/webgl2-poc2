@@ -104,7 +104,7 @@ if (WIN32)
   add_definitions(-DQLIB_EXPORTS=1)
 endif()
 
-add_library(qlib SHARED ${QLIB_SRCS} ${QLIB_XML_SRCS} ${MCWG_HEADERS})
+add_library(qlib SHARED ${QLIB_SRCS} ${QLIB_XML_SRCS} ${QLIB_GZ_SRCS} ${MCWG_HEADERS})
 # add_library(qlib SHARED ${QLIB_SRCS})
 target_link_libraries(qlib PRIVATE ${QLIB_LINK_LIBRARIES})
 

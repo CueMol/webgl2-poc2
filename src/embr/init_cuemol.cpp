@@ -19,6 +19,11 @@
 #include "embr.hpp"
 #include "wrapper.hpp"
 
+namespace molstr {
+  extern bool init();
+  extern void fini();
+}
+
 namespace embr {
 
 using qlib::LString;
@@ -31,11 +36,13 @@ bool initCueMol(const std::string &config)
     try {
         qlib::init();
         qsys::init(config.c_str());
+        molstr::init();
         init();
-        registerViewFactory();
 
         // setup timer
         qlib::EventManager::getInstance()->initTimer(new EmTimerImpl);
+
+        registerViewFactory();
 
     } catch (const qlib::LException &e) {
         printf("XXXXX\n");

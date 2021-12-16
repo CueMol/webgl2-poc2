@@ -21,62 +21,162 @@ function combRefs(ref1, ref2) {
     };
 }
 
+function test_func1(utils) {
+    let vecobj = utils.createObject("Vector");
+    console.log(`Vector: ${vecobj}`);
+    vecobj.strvalue = "(1,2,3)"
+    console.log("Vector.strvalue:", vecobj.strvalue);
+
+    console.log("==========");
+    let vecobj2 = utils.createObject("Vector");
+    // vecobj2.strvalue = "(3,2,1)"
+    vecobj2.set3(3,2,1);
+    console.log("Vec.dot:", vecobj.dot(vecobj2));
+    console.log("Vec.cross:", vecobj.cross(vecobj2).toString());
+    
+    vecobj.destroy();
+    vecobj2.destroy();
+    
+    console.log("==========");
+
+    let mgr = utils.getService("SceneManager");
+    console.log(`mgr: ${mgr}`);
+    console.log(`mgr.toString(): ${mgr.toString()}`);
+    mgr.destroy();
+    console.log(`mgr.toString(): ${mgr.toString()}`);
+}
+
+function openFile(cm, aSc, aPath, newobj_name, newobj_type, rdr_name, aOptions)
+{
+    var i, val;
+    var StrMgr = cm.getService("StreamManager");
+    var reader = StrMgr.createHandler(rdr_name, 0);
+    reader.setPath(aPath);
+    
+    if (aOptions && "object"===typeof aOptions) {
+        for (i in aOptions) {
+	        val = aOptions[i];
+	        console.log("set reader option: "+i+"="+val);
+	        reader[i] = val;
+        }
+    }
+    
+    aSc.startUndoTxn("Open file");
+    var newobj=null;
+    try {
+        // if (newobj_type)
+	    //     newobj = newObj(newobj_type);
+        // else
+	    newobj = reader.createDefaultObj();
+        reader.attach(newobj);
+        reader.read();
+        reader.detach();
+        
+        newobj.name = newobj_name;
+        aSc.addObject(newobj);
+    }
+    catch (e) {
+        console.log("File Open Error: "+e.message);
+        aSc.rollbackUndoTxn();
+        return;
+    }
+    aSc.commitUndoTxn();
+    
+    return newobj;
+};
+
+function makeSel(cm, aSelStr, aUID)
+{
+    var sel = cm.SelCommand();
+    if (aUID) {
+        if (!sel.compile(aSelStr, aUID))
+	        return null;
+    }
+    else {
+        if (!sel.compile(aSelStr, 0))
+	        return null;
+    }
+    return sel;
+}
+
+function createRend(cm, aObj, aRendType, aRendName, aSelStr)
+{
+    var rend, sce = aObj.getScene();
+
+    var sel;
+    try {
+        if (aSelStr) {
+	        sel = makeSel(cm, aSelStr, sce.uid);
+        }
+    }
+    catch (e) {
+        console.log("createRend selstr: error="+e);
+    }
+
+    sce.startUndoTxn("Create new representation");
+    try {
+        rend = aObj.createRenderer(aRendType);
+        console.log("*** end_type: "+rend.end_captype);
+        rend.name = aRendName;
+        if ("sel" in rend && sel)
+	        rend.sel = sel;
+    }
+    catch (e) {
+        sce.rollbackUndoTxn();
+        throw e;
+    }
+    sce.commitUndoTxn();
+    
+    return rend;
+}
+
+function test_load_func1(utils) {
+    let sceMgr = utils.getService("SceneManager");
+    let scene = sceMgr.createScene();
+    scene.setName("Test Scene");
+    console.log(`Scene created UID: ${scene.getUID()}, name: ${scene.name}`);
+
+    let vw = scene.createView();
+    vw.name = "Primary View";
+
+    const molview = document.getElementById('mol_view');
+    console.log(`molview: ${molview}`);
+    vw.bind("#mol_view");
+    
+    let canvas = document.getElementById('mol_view');
+    canvas.view = vw;
+    updateMolViewSize(canvas, vw, window.devicePixelRatio || 1.0);
+    if (window.devicePixelRatio) {
+        vw.setSclFac(window.devicePixelRatio, window.devicePixelRatio);
+        // vw.resetSclFac();
+    }
+
+    //////////
+
+    let path = "/1CRN.pdb"
+    let mol = openFile(utils, scene, path, "1CRN.pdb", null, "pdb", null);
+    let rend = createRend(utils, mol, "simple", "simple1", "*");
+    rend.name = "my renderer";
+    rend.applyStyles("DefaultCPKColoring");
+    let pos = rend.getCenter();
+    console.log("view center:"+pos.toString());
+    vw.setViewCenter(pos);
+    
+
+    // let obj = utils.createObject("Object");
+    // scene.addObject(obj);
+    // console.log(`Object created UID: ${obj.getUID()}, name: ${obj.name}`);
+
+    // // let rend = obj.createRenderer("test");
+    // let rend = obj.createRenderer("dltest");
+    // console.log(`Renderer created UID: ${rend.getUID()}, name: ${rend.name}`);
+}
+
 export default function MolView({id}) {
     let canvasRef = useRef(0);
     window.Utils = Utils;
     window.onCueMolLoaded = (utils) => {
-        // let vecobj = utils.createObject("Vector");
-        // console.log(`Vector: ${vecobj}`);
-        // vecobj.strvalue = "(1,2,3)"
-        // console.log("Vector.strvalue:", vecobj.strvalue);
-
-        // console.log("==========");
-        // let vecobj2 = utils.createObject("Vector");
-        // // vecobj2.strvalue = "(3,2,1)"
-        // vecobj2.set3(3,2,1);
-        // console.log("Vec.dot:", vecobj.dot(vecobj2));
-        // console.log("Vec.cross:", vecobj.cross(vecobj2).toString());
-        
-        // vecobj.destroy();
-        // vecobj2.destroy();
-        
-        // console.log("==========");
-
-        // let mgr = utils.getService("SceneManager");
-        // console.log(`mgr: ${mgr}`);
-        // console.log(`mgr.toString(): ${mgr.toString()}`);
-        // mgr.destroy();
-        // console.log(`mgr.toString(): ${mgr.toString()}`);
-
-        let sceMgr = utils.getService("SceneManager");
-        let scene = sceMgr.createScene();
-        scene.setName("Test Scene");
-        console.log(`Scene created UID: ${scene.getUID()}, name: ${scene.name}`);
-
-        let vw = scene.createView();
-        vw.name = "Primary View";
-
-        const molview = document.getElementById('mol_view');
-        console.log(`molview: ${molview}`);
-        vw.bind("#mol_view");
-        
-        let canvas = document.getElementById('mol_view');
-        canvas.view = vw;
-        updateMolViewSize(canvas, vw, window.devicePixelRatio || 1.0);
-        if (window.devicePixelRatio) {
-            vw.setSclFac(window.devicePixelRatio, window.devicePixelRatio);
-            // vw.resetSclFac();
-        }
-
-        //////////
-
-        let obj = utils.createObject("Object");
-        scene.addObject(obj);
-        console.log(`Object created UID: ${obj.getUID()}, name: ${obj.name}`);
-
-        // let rend = obj.createRenderer("test");
-        let rend = obj.createRenderer("dltest");
-        console.log(`Renderer created UID: ${rend.getUID()}, name: ${rend.name}`);
+        test_load_func1(utils);
     };
 
     useEffect(()=>{

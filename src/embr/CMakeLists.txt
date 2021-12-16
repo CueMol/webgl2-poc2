@@ -38,8 +38,9 @@ SET(EMBR_LINK_LIBRARIES
   pcre
   expat
   # qmpng
-  # qmzlib
+  qmzlib
   qlib gfx qsys
+  molstr
   )
 
 # SET(EMCC_PRE_JS "--pre-js ${CMAKE_CURRENT_SOURCE_DIR}/pre.js")
@@ -71,7 +72,8 @@ add_custom_command(
 
 add_custom_command(
   TARGET embr POST_BUILD
-  COMMAND ${CMAKE_COMMAND} -E copy
-  ${CMAKE_CURRENT_SOURCE_DIR}/es6/wrapper_loader.js
-  ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/libs/wrapper_loader.js
+  COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/make_wrapper_table.py --input_dir ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/libs/wrappers/ --output_js ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/libs/wrapper_loader.js
+#  COMMAND ${CMAKE_COMMAND} -E copy
+#  ${CMAKE_CURRENT_SOURCE_DIR}/es6/wrapper_loader.js
+#  ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/libs/wrapper_loader.js
   )

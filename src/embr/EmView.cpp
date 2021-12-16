@@ -53,13 +53,14 @@ LString EmView::toString() const
 void EmView::setUpModelMat(int nid)
 {
     m_modelMat = qlib::Matrix4D();
+    // m_modelMat = qlib::Matrix4D::makeTransMat(qlib::Vector4D(0, 0.5, 0));
 
     m_modelMat.matprod(
         qlib::Matrix4D::makeTransMat(qlib::Vector4D(0, 0, -getViewDist())));
     m_modelMat.matprod(getRotQuat().toRotMatrix());
     m_modelMat.matprod(qlib::Matrix4D::makeTransMat(-getViewCenter()));
 
-    // LOG_DPRINTLN("modelMat: %s", m_modelMat.toString().c_str());
+    printf("modelMat: %s\n", m_modelMat.toString().c_str());
     // auto pdef = m_pCtxt->getProgramObject("default");
     // pdef->enable();
     // pdef->setMatrix("model", m_modelMat);
@@ -127,9 +128,10 @@ void EmView::setUpProjMat(int cx, int cy)
         const float tz = -(far + near) / (far - near);
 
         GLfloat m[16] = {
-            a, 0, 0,  tx, 0, b, 0, ty, 0,
-            0, c, tz, 0,  0, 0, 1
-            // tx, ty, tz, 1
+            a, 0, 0,  0,
+            0, b, 0, 0,
+            0, 0, c, 0,
+            tx, ty, tz, 1
         };
 
         // auto pdef = m_pCtxt->getProgramObject("default");
@@ -213,8 +215,8 @@ void EmView::bind(const LString &id)
 void EmView::onMouseDown(double clientX, double clientY, double screenX, double screenY,
                          int modif)
 {
-    printf("onMouseDown (%f, %f) (%f, %f) %x\n", clientX, clientY, screenX, screenY,
-           modif);
+    // printf("onMouseDown (%f, %f) (%f, %f) %x\n", clientX, clientY, screenX, screenY,
+    //        modif);
     qsys::InDevEvent ev;
     setupInDevEvent(clientX, clientY, screenX, screenY, modif, ev);
     dispatchMouseEvent(DME_MOUSE_DOWN, ev);
@@ -223,8 +225,8 @@ void EmView::onMouseDown(double clientX, double clientY, double screenX, double 
 void EmView::onMouseUp(double clientX, double clientY, double screenX, double screenY,
                        int modif)
 {
-    printf("onMouseUp (%f, %f) (%f, %f) %x\n", clientX, clientY, screenX, screenY,
-           modif);
+    // printf("onMouseUp (%f, %f) (%f, %f) %x\n", clientX, clientY, screenX, screenY,
+    //        modif);
     qsys::InDevEvent ev;
     setupInDevEvent(clientX, clientY, screenX, screenY, modif, ev);
     dispatchMouseEvent(DME_MOUSE_UP, ev);
@@ -233,8 +235,8 @@ void EmView::onMouseUp(double clientX, double clientY, double screenX, double sc
 void EmView::onMouseMove(double clientX, double clientY, double screenX, double screenY,
                          int modif)
 {
-    printf("onMouseMove (%f, %f) (%f, %f) %x\n", clientX, clientY, screenX, screenY,
-           modif);
+    // printf("onMouseMove (%f, %f) (%f, %f) %x\n", clientX, clientY, screenX, screenY,
+    //        modif);
     qsys::InDevEvent ev;
     setupInDevEvent(clientX, clientY, screenX, screenY, modif, ev);
     dispatchMouseEvent(DME_MOUSE_MOVE, ev);
