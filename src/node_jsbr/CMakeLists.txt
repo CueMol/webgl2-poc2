@@ -28,7 +28,6 @@ SET(NODE_JSBR_SRCS
   ElecDisplayContext.cpp
   ElecDisplayList.cpp
   ElecProgramObject.cpp
-  MouseEventHandler.cpp
   ${CMAKE_JS_SRC}
   )
 
@@ -56,9 +55,9 @@ SET(NODE_JSBR_LINK_LIBRARIES
   pcre
   expat
   # qmpng
-  # qmzlib
+  qmzlib
   qlib gfx qsys
-#  Boost::filesystem
+  molstr
   ${CMAKE_JS_LIB}
   )
 
