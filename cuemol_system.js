@@ -215,7 +215,7 @@ module.exports = class Manager {
             return gl.FRAGMENT_SHADER;
         }
         else {
-            throw "xxx";
+            throw `unknown shader type: ${name}`;
         }
     }
 
@@ -320,7 +320,7 @@ module.exports = class Manager {
     }
 
     resized(width, height) {
-        console.log(width, height);
+        console.log("resized:", width, height);
         this._view.sizeChanged(width, height);
     }
 

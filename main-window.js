@@ -1,7 +1,4 @@
 console.log("Initializing...");
-// const WebGLRender = require('./webgl_native_render');
-// let webgl = new WebGLRender();
-
 const CueMolMgr = require("./cuemol_system");
 let mgr = new CueMolMgr();
 // mgr.test();
@@ -12,11 +9,19 @@ function adjustCanvasSize(placeholder, canvas, devicePixelRatio) {
     let rect = placeholder.getBoundingClientRect();
     let w = rect.width * devicePixelRatio;
     let h = rect.height * devicePixelRatio;
-    canvas.style.width = rect.width + "px";
-    canvas.style.height = rect.height + "px";
+    // canvas.style.width = rect.width + "px";
+    // canvas.style.height = rect.height + "px";
     canvas.width = w;
     canvas.height = h;
     return [w, h];
+}
+
+function adjustCanvasSize2(mgr, canvas, dpr) {
+    let {width, height} = canvas.getBoundingClientRect();
+    console.log(`canvas resize: ${width} x ${height}`);
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+    mgr.resized(width, height);
 }
 
 window.addEventListener("load", () => {
@@ -27,18 +32,20 @@ window.addEventListener("load", () => {
     let devicePixelRatio = window.devicePixelRatio || 1;
 
     console.log("devicePixelRatio", devicePixelRatio);
-    adjustCanvasSize(placeholder, canvas, devicePixelRatio);
+    // adjustCanvasSize(placeholder, canvas, devicePixelRatio);
+    adjustCanvasSize2(mgr, canvas, devicePixelRatio);
 
     mgr.bindCanvas(canvas);
     const resizeObserver = new ResizeObserver(entries => {
-        let [w, h] = adjustCanvasSize(placeholder, canvas, devicePixelRatio);
-        rect = placeholder.getBoundingClientRect();
-        w = rect.width;
-        h = rect.height;
-        mgr.resized(w, h);
+        // let [w, h] = adjustCanvasSize(placeholder, canvas, devicePixelRatio);
+        // rect = placeholder.getBoundingClientRect();
+        // let {width, height}  = canvas.getBoundingClientRect();
+        // mgr.resized(width, height);
+        adjustCanvasSize2(mgr, canvas, devicePixelRatio);
         mgr.updateDisplay();
     });
-    resizeObserver.observe(placeholder);
+    // resizeObserver.observe(placeholder);
+    resizeObserver.observe(canvas);
     
     /////
 
