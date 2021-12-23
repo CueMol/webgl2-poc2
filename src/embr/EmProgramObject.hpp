@@ -11,8 +11,6 @@ class Matrix4D;
 
 namespace embr {
 
-class EmView;
-
 using qlib::LString;
 
 class EmProgramObject

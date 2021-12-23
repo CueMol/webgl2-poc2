@@ -27,7 +27,7 @@ bool ElecProgramObject::loadShaders(const qlib::MapTable<qlib::LString> &file_na
 
     auto method = peer.Get("createShader").As<Napi::Function>();
     auto rval =
-        method.Call(peer, {Napi::String::New(env, m_progObjName.c_str()), args});
+        method.Call(peer, {Napi::String::New(env, getName().c_str()), args});
 
     // int shader_id = rval.As<Napi::Number>().Int32Value();
     // printf("shader ID: %d\n", shader_id);
@@ -61,8 +61,7 @@ void ElecProgramObject::enable()
     auto peer = m_pView->getPeerObj();
     auto env = peer.Env();
     auto method = peer.Get("enableShader").As<Napi::Function>();
-    // method.Call(peer, {Napi::Number::New(env, m_progObjID)});
-    method.Call(peer, {Napi::String::New(env, m_progObjName.c_str())});
+    method.Call(peer, {Napi::String::New(env, getName().c_str())});
     // printf("ElecProgramObject::enable %d OK\n", m_progObjID);
 }
 
@@ -80,7 +79,7 @@ void ElecProgramObject::disable()
 //     auto peer = m_pView->getPeerObj();
 //     auto env = peer.Env();
 //     auto method = peer.Get("deleteShader").As<Napi::Function>();
-//     method.Call(peer, {Napi::String::New(env, m_progObjName.c_str())});
+//     method.Call(peer, {Napi::String::New(env, getName().c_str())});
 // }
 
 }  // namespace node_jsbr

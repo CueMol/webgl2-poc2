@@ -16,6 +16,7 @@
 #include "RendGroup.hpp"
 #include "TestRenderer.hpp"
 #include "TestDLRenderer.hpp"
+#include "ProgObjMgr.hpp"
 
 #include <qlib/FileStream.hpp>
 #include <gfx/gfx.hpp>
@@ -167,6 +168,8 @@ bool init(const char *config)
   pCmdMgr->regist<NewRendererCommand>();
   pCmdMgr->regist<LoadSceneCommand>();
   pCmdMgr->regist<LoadObjectCommand>();
+
+  ProgObjMgr::init();
 
   ///////////////////
   // initialize other services

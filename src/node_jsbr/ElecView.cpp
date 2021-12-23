@@ -105,6 +105,7 @@ void ElecView::bindPeer(Napi::Object peer)
             });
         m_modelArrayBuf = Napi::Persistent(array_buf);
     }
+
     {
         float *pbuf = &m_projMat.ai(1);
         Napi::Object array_buf = Napi::ArrayBuffer::New(
