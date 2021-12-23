@@ -107,24 +107,30 @@ module.exports = class Manager {
         // vw.name = "Primary View";
         this._view = vw;
 
-        // let obj = wrapper_utils.createObj("Object");
-        // scene.addObject(obj);
-        // console.log(`Object created UID: ${obj.getUID()}, name: ${obj.name}`);
+        this.loadTestRend(wrapper_utils, scene, vw);
+        // this.loadTestPDB(wrapper_utils, scene, vw);
+    }
 
-        // // let rend = obj.createRenderer("test");
-        // let rend = obj.createRenderer("dltest");
-        // console.log(`Renderer created UID: ${rend.getUID()}, name: ${rend.name}`);
-        // this.rend = rend;
+    loadTestRend(cuemol, scene, vw) {
+        let obj = cuemol.createObj("Object");
+        scene.addObject(obj);
+        console.log(`Object created UID: ${obj.getUID()}, name: ${obj.name}`);
 
+        // let rend = obj.createRenderer("test");
+        let rend = obj.createRenderer("dltest");
+        console.log(`Renderer created UID: ${rend.getUID()}, name: ${rend.name}`);
+        this.rend = rend;
+    }
+    
+    loadTestPDB(cuemol, scene, vw) {
         let path = "./src/data/1CRN.pdb"
-        let mol = openFile(wrapper_utils, scene, path, "1CRN.pdb", null, "pdb", null);
-        let rend = createRend(wrapper_utils, mol, "simple", "simple1", "*");
+        let mol = openFile(cuemol, scene, path, "1CRN.pdb", null, "pdb", null);
+        let rend = createRend(cuemol, mol, "simple", "simple1", "*");
         rend.name = "my renderer";
         rend.applyStyles("DefaultCPKColoring");
         let pos = rend.getCenter();
         console.log("view center:"+pos.toString());
         vw.setViewCenter(pos);
-
     }
 
     test() {

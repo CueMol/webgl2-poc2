@@ -155,7 +155,10 @@ void EsDisplayList::loadMatrix(const qlib::Matrix4D &mat)
     // checkUnitary();
 }
 
-void EsDisplayList::setPolygonMode(int id) {}
+void EsDisplayList::setPolygonMode(int id)
+{
+    LOG_DPRINTLN("setPolygonMode is not supported (ignored.)");
+}
 
 void EsDisplayList::startPoints()
 {
@@ -244,7 +247,7 @@ void EsDisplayList::end()
 }
 
 void EsDisplayList::drawLine(const Vector4D &v1, qlib::quint32 c1, const Vector4D &v2,
-                               qlib::quint32 c2)
+                             qlib::quint32 c2)
 {
     m_lineBuf.push_back(LineDrawAttr{float(v1.x()), float(v1.y()), float(v1.z()),
                                      float(v1.w()), float(gfx::getFR(c1)),
@@ -258,7 +261,7 @@ void EsDisplayList::drawLine(const Vector4D &v1, qlib::quint32 c1, const Vector4
 }
 
 void EsDisplayList::addTrigVert(const Vector4D &v1, const Vector4D &n1,
-                                  qlib::quint32 c1)
+                                qlib::quint32 c1)
 {
     m_trigBuf.push_back(TrigVertAttr{float(v1.x()), float(v1.y()), float(v1.z()),
                                      float(v1.w()), float(gfx::getFR(c1)),

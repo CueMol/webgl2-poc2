@@ -129,17 +129,19 @@ public:
     virtual void multMatrix(const qlib::Matrix4D &mat);
     virtual void loadMatrix(const qlib::Matrix4D &mat);
 
-    virtual void setPolygonMode(int id);
     virtual void startPoints();
-    virtual void startPolygon();
     virtual void startLines();
     virtual void startLineStrip();
     virtual void startTriangles();
     virtual void startTriangleStrip();
     virtual void startTriangleFan();
+    virtual void end();
+
+    // not implemented
+    virtual void setPolygonMode(int id);
+    virtual void startPolygon();
     virtual void startQuadStrip() {}
     virtual void startQuads() {}
-    virtual void end();
 
     virtual gfx::DisplayContext *createDisplayList();
     virtual bool canCreateDL() const;
