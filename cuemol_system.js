@@ -330,7 +330,7 @@ module.exports = class Manager {
         this._view.sizeChanged(width, height);
     }
 
-    createBuffer(name, nsize, num_elems, elem_info_str) {
+    createBuffer(name, nsize, num_elems, nsize_index, elem_info_str) {
         if (name in this._draw_data) {
             console.log(`name ${name} already exists`);
             return false;
@@ -353,10 +353,22 @@ module.exports = class Manager {
             gl.vertexAttribPointer(aloc, value["nelems"], gl.FLOAT, false, stride, value["npos"]);
         });
         gl.bufferData(gl.ARRAY_BUFFER, nsize, gl.STATIC_DRAW);
-        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+        console.log("vbo nsize=", nsize);
+
+        // index buffer
+        let indexBuffer = null;
+        if (nsize_index > 0) {
+            indexBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, nsize_index, gl.STATIC_DRAW);
+            // gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+            console.log("ibo nsize=", nsize_index);
+        }
+
+        // gl.bindBuffer(gl.ARRAY_BUFFER, null);
         gl.bindVertexArray(null);
 
-        this._draw_data[name] = [vao, vertexBuffer];
+        this._draw_data[name] = [vao, vertexBuffer, indexBuffer];
 
         // const new_id = this._new_draw_id
         // this._draw_data[new_id] = [vao, vertexBuffer];
@@ -366,14 +378,22 @@ module.exports = class Manager {
         return true;
     }
 
-    drawBuffer(id, nmode, nelems, array_buf, isUpdated) {
+    drawBuffer(id, nmode, nelems, array_buf, index_buf, isUpdated) {
         const gl = this._context;
         const obj = this._draw_data[id];
         if (isUpdated) {
             // Transfer VBO to GPU
-            gl.bindBuffer(gl.ARRAY_BUFFER, obj[1]);
+            const vbo = obj[1];
+            const ibo = obj[2];
+            gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
             gl.bufferSubData(gl.ARRAY_BUFFER, 0, array_buf);
             gl.bindBuffer(gl.ARRAY_BUFFER, null);
+            if (index_buf !== null && ibo !== null) {
+                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo);
+                gl.bufferSubData(gl.ELEMENT_ARRAY_BUFFER, 0, index_buf);
+                // gl.bufferSubData(gl.ELEMENT_ARRAY_BUFFER, 0, new Int32Array([0, 1, 2]));
+                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+            }
         }
 
         let nglmode = gl.TRIANGLES;
@@ -386,7 +406,14 @@ module.exports = class Manager {
         // }
 
         gl.bindVertexArray(obj[0]);
-        gl.drawArrays(nglmode, 0, nelems);
+        if (index_buf === null) {
+            gl.drawArrays(nglmode, 0, nelems);
+        }
+        else {
+            console.log("drawelem nelems=", nelems);
+            gl.drawElements(nglmode, nelems, gl.UNSIGNED_INT, 0);
+            // gl.drawElements(nglmode, 3, gl.UNSIGNED_INT, 0);
+        }
         gl.bindVertexArray(null);
     }
 
@@ -402,6 +429,10 @@ module.exports = class Manager {
         delete this._draw_data[id];
         // delete VBO
         gl.deleteBuffer(obj[1]);
+        // delete index VBO
+        if (obj[2] !== null) {
+            gl.deleteBuffer(obj[2]);
+        }
         // delete VAO
         gl.deleteVertexArray(obj[0]);
 

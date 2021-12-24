@@ -48,6 +48,9 @@ private:
 
     gfx::GrowMesh m_mesh;
 
+    using TrigMesh = gfx::DrawAttrElems<qlib::quint32, TrigVertAttr>;
+    TrigMesh *m_pTrigMesh;
+
     /////
 
     bool m_fValid;
@@ -156,13 +159,17 @@ public:
     virtual bool recordStart();
     virtual void recordEnd();
 
-    gfx::AbstDrawAttrs *getLineArray() const
+    auto *getLineArray() const
     {
         return m_pLineArray;
     }
-    gfx::AbstDrawAttrs *getTrigArray() const
+    auto *getTrigArray() const
     {
         return m_pTrigArray;
+    }
+    auto *getTrigMesh() const
+    {
+        return m_pTrigMesh;
     }
 };
 }  // namespace qsys

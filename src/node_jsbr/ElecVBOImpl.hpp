@@ -2,19 +2,23 @@
 
 #include <gfx/DrawAttrArray.hpp>
 
-#include "node_jsbr.hpp"
 #include "ElecView.hpp"
+#include "node_jsbr.hpp"
 
 namespace node_jsbr {
+
 class ElecVBOImpl : public gfx::VBORep
 {
 private:
     qlib::uid_t m_nViewID;
-    // int m_nBufID;
     qlib::LString m_bufName;
     size_t m_nElems;
     Napi::ObjectReference m_arrayBufRef;
     int m_nDrawMode;
+
+    // index data
+    Napi::ObjectReference m_indexBufRef;
+    size_t m_nIndexElems;
 
 public:
     ElecVBOImpl(ElecView *pView, const qlib::LString &name,
@@ -22,7 +26,8 @@ public:
         : m_nViewID(pView->getUID()),
           m_bufName(name),
           m_nElems(data.getSize()),
-          m_nDrawMode(data.getDrawMode())
+          m_nDrawMode(data.getDrawMode()),
+          m_nIndexElems(0)
     {
         qlib::LString json_str;
         json_str += "[";
@@ -45,29 +50,40 @@ public:
         auto peer = pView->getPeerObj();
         auto env = peer.Env();
 
-        auto method = peer.Get("createBuffer").As<Napi::Function>();
-        auto rval = method.Call(
-            peer,
-            {Napi::String::New(env, m_bufName), Napi::Number::New(env, buffer_size),
-             Napi::Number::New(env, nelems), Napi::String::New(env, json_str)});
-
-        bool result = rval.As<Napi::Boolean>().Value();
-        if (!result) {
-            MB_THROW(qlib::RuntimeException, "createBuffer failed");
-            return;
-        }
-        // int buffer_id = rval.As<Napi::Number>().Int32Value();
-        // printf("buffer ID: %d\n", buffer_id);
-        // m_nBufID = buffer_id;
-
         auto pbuf = const_cast<void *>(data.getData());
-
         Napi::Object array_buf = Napi::ArrayBuffer::New(
             env, pbuf, buffer_size, [](Napi::Env, void *finalizeData) {
                 printf("finalizer called for %p\n", finalizeData);
                 // delete [] static_cast<float*>(finalizeData);
             });
         m_arrayBufRef = Napi::Persistent(array_buf);
+
+        // index data
+        const size_t nindex_bytes = data.getIndDataSize();
+        if (nindex_bytes > 0) {
+            auto pind = const_cast<void *>(data.getIndData());
+            MB_ASSERT(pind != nullptr);
+            Napi::Object ind_buf = Napi::ArrayBuffer::New(
+                env, pind, nindex_bytes, [](Napi::Env, void *finalizeData) {
+                    printf("IndexBufferfinalizer called for %p\n", finalizeData);
+                    // delete [] static_cast<float*>(finalizeData);
+                });
+            m_indexBufRef = Napi::Persistent(ind_buf);
+            m_nIndexElems = data.getIndSize();
+        }
+
+        auto method = peer.Get("createBuffer").As<Napi::Function>();
+        auto rval = method.Call(
+            peer,
+            {Napi::String::New(env, m_bufName), Napi::Number::New(env, buffer_size),
+             Napi::Number::New(env, nelems), Napi::Number::New(env, nindex_bytes),
+             Napi::String::New(env, json_str)});
+
+        bool result = rval.As<Napi::Boolean>().Value();
+        if (!result) {
+            MB_THROW(qlib::RuntimeException, "createBuffer failed");
+            return;
+        }
     }
 
     void drawBuffer(ElecView *pView, bool isUpdated)
@@ -76,10 +92,19 @@ public:
         auto env = peer.Env();
 
         auto method = peer.Get("drawBuffer").As<Napi::Function>();
-        method.Call(peer, {Napi::String::New(env, m_bufName),
-                           Napi::Number::New(env, m_nDrawMode),
-                           Napi::Number::New(env, m_nElems), m_arrayBufRef.Value(),
-                           Napi::Boolean::New(env, isUpdated)});
+
+        if (m_nIndexElems > 0) {
+            method.Call(
+                peer,
+                {Napi::String::New(env, m_bufName), Napi::Number::New(env, m_nDrawMode),
+                 Napi::Number::New(env, m_nIndexElems), m_arrayBufRef.Value(),
+                 m_indexBufRef.Value(), Napi::Boolean::New(env, isUpdated)});
+        } else {
+            method.Call(peer, {Napi::String::New(env, m_bufName),
+                               Napi::Number::New(env, m_nDrawMode),
+                               Napi::Number::New(env, m_nElems), m_arrayBufRef.Value(),
+                               env.Null(), Napi::Boolean::New(env, isUpdated)});
+        }
     }
 
     void deleteBuffer(ElecView *pView)

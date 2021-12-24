@@ -7,6 +7,7 @@ namespace qsys {
 EsDisplayList::EsDisplayList()
     : m_pLineArray(nullptr),
       m_pTrigArray(nullptr),
+      m_pTrigMesh(nullptr),
       m_fValid(false),
       m_nDrawMode(DRAWMODE_NONE),
       m_pColor(gfx::SolidColor::createRGB(0.5, 0.5, 0.5)),
@@ -355,6 +356,42 @@ void EsDisplayList::recordEnd()
         }
         m_pTrigArray->setUpdated(true);
         m_trigBuf.clear();
+    }
+
+    // Create Trig attr indexed array
+    MB_ASSERT(m_pTrigMesh == nullptr);
+    const size_t nMeshVerts = m_mesh.getVertexSize();
+    const size_t nMeshFaces = m_mesh.getFaceSize();
+    if (nMeshFaces > 0) {
+        m_pTrigMesh = new TrigMesh();
+        m_pTrigMesh->setDrawMode(gfx::AbstDrawElem::DRAW_TRIANGLES);
+        m_pTrigMesh->setAttrSize(2);
+        m_pTrigMesh->setAttrInfo(0, DSLOC_VERT_POS, 4, qlib::type_consts::QTC_FLOAT32,
+                                 offsetof(TrigVertAttr, x));
+        m_pTrigMesh->setAttrInfo(1, DSLOC_VERT_COLOR, 4, qlib::type_consts::QTC_FLOAT32,
+                                 offsetof(TrigVertAttr, r));
+        m_pTrigMesh->alloc(nMeshVerts);
+        m_pTrigMesh->allocInd(nMeshFaces * 3);
+        size_t i = 0;
+        for (const auto *pelem : m_mesh.getVertexData()) {
+            const auto &c1 = pelem->c;
+            const auto &v1 = pelem->v;
+            m_pTrigMesh->at(i) =
+                TrigVertAttr{float(v1.x()),         float(v1.y()),
+                             float(v1.z()),         1.0f,
+                             float(gfx::getFR(c1)), float(gfx::getFG(c1)),
+                             float(gfx::getFB(c1)), float(gfx::getFA(c1))};
+            i++;
+        }
+        i = 0;
+        for (const auto &elem : m_mesh.getFaceData()) {
+            m_pTrigMesh->atind(i) = elem.iv1;
+            m_pTrigMesh->atind(i + 1) = elem.iv2;
+            m_pTrigMesh->atind(i + 2) = elem.iv3;
+            i += 3;
+        }
+        m_pTrigMesh->setUpdated(true);
+        m_mesh.clear();
     }
 }
 

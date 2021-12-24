@@ -267,6 +267,14 @@ public:
     {
         return m_faces[find];
     }
+
+    const auto &getVertexData() const {
+        return m_verts;
+    }
+    const auto &getFaceData() const {
+        return m_faces;
+    }
+
 };
 
 }  // namespace gfx

@@ -85,6 +85,12 @@ void EsDisplayContext::callDisplayList(DisplayContext *pdl)
         drawElem(*pTrigs);
     }
 
+    // Trig mesh
+    auto *pMesh = psrc->getTrigMesh();
+    if (pMesh != nullptr) {
+        drawElem(*pMesh);
+    }
+    
     // printf("callDisplayList OK\n");
 }
 
