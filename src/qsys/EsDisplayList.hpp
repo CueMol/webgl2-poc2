@@ -2,6 +2,7 @@
 
 #include <gfx/DisplayContext.hpp>
 #include <gfx/DrawAttrArray.hpp>
+#include <gfx/GrowMesh.hpp>
 
 namespace qsys {
 
@@ -13,7 +14,7 @@ private:
     //////////
     // lines
 
-    // TODO: use uint8 for colors
+    // TODO: use uint8 for colors/remove w
     struct LineDrawAttr
     {
         float x, y, z, w;
@@ -44,6 +45,8 @@ private:
 
     using TrigVertBuf = std::deque<TrigVertAttr>;
     TrigVertBuf m_trigBuf;
+
+    gfx::GrowMesh m_mesh;
 
     /////
 

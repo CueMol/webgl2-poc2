@@ -43,6 +43,7 @@ void EsDisplayList::vertex(const Vector4D &aV)
 #endif
 
     // printf("draw mode %d\n", m_nDrawMode);
+    auto color_value = m_pColor->getDevCode(getSceneID());
     switch (m_nDrawMode) {
         default:
         case DRAWMODE_NONE:
@@ -52,10 +53,10 @@ void EsDisplayList::vertex(const Vector4D &aV)
         case DRAWMODE_LINES:
             if (!m_fPrevPosValid) {
                 m_prevPos = v;
-                m_prevCol = m_pColor->getDevCode(getSceneID());
+                m_prevCol = color_value;
                 m_fPrevPosValid = true;
             } else {
-                drawLine(v, m_pColor->getDevCode(getSceneID()), m_prevPos, m_prevCol);
+                drawLine(v, color_value, m_prevPos, m_prevCol);
                 m_fPrevPosValid = false;
             }
             break;
@@ -64,29 +65,28 @@ void EsDisplayList::vertex(const Vector4D &aV)
         case DRAWMODE_LINESTRIP:
             if (!m_fPrevPosValid) {
                 m_prevPos = v;
-                m_prevCol = m_pColor->getDevCode(getSceneID());
+                m_prevCol = color_value;
                 m_fPrevPosValid = true;
                 break;
             } else {
-                drawLine(v, m_pColor->getDevCode(getSceneID()), m_prevPos, m_prevCol);
+                drawLine(v, color_value, m_prevPos, m_prevCol);
                 m_prevPos = v;
             }
             break;
 
             //////////////////////////////////////////////////////
         case DRAWMODE_TRIGS:
-            addTrigVert(v, m_norm, m_pColor->getDevCode(getSceneID()));
+            addTrigVert(v, m_norm, color_value);
             break;
 
             //////////////////////////////////////////////////////
         case DRAWMODE_TRIGSTRIP:
-            // TODO: impl
-            // m_pIntData->meshVertex(v, m_norm, m_pColor, m_nCurAttrib);
+            m_mesh.addVertex(v, m_norm, color_value);
             break;
 
             //////////////////////////////////////////////////////
         case DRAWMODE_TRIGFAN:
-            // TODO: impl
+            m_mesh.addVertex(v, m_norm, color_value);
             // m_pIntData->meshVertex(v, m_norm, m_pColor);
             break;
     }
@@ -197,7 +197,6 @@ void EsDisplayList::startTriangles()
         return;
     }
     m_nDrawMode = DRAWMODE_TRIGS;
-
     // if (m_nPolyMode == POLY_FILL || m_nPolyMode == POLY_FILL_NORGLN ||
     //     m_nPolyMode == POLY_FILL_XX)
     //     m_pIntData->meshStart(m_nDrawMode);
@@ -214,12 +213,18 @@ void EsDisplayList::startTriangleStrip()
         return;
     }
     m_nDrawMode = DRAWMODE_TRIGSTRIP;
+    m_mesh.start(gfx::GrowMesh::GM_TRIGSTRIP);
     // m_pIntData->meshStart(m_nDrawMode);
 }
 
 void EsDisplayList::startTriangleFan()
 {
+    if (m_nDrawMode != DRAWMODE_NONE) {
+        MB_THROW(qlib::RuntimeException, "EsDisplayList: Unexpected condition");
+        return;
+    }
     m_nDrawMode = DRAWMODE_TRIGFAN;
+    m_mesh.start(gfx::GrowMesh::GM_TRIGFAN);
     // m_pIntData->meshStart(m_nDrawMode);
 }
 
@@ -236,10 +241,12 @@ void EsDisplayList::end()
             break;
 
         case DRAWMODE_TRIGFAN:
+            m_mesh.end();
             // m_pIntData->meshEndFan();
             break;
 
         case DRAWMODE_TRIGSTRIP:
+            m_mesh.end();
             // m_pIntData->meshEndTrigStrip();
             break;
     }
