@@ -1,5 +1,7 @@
 const _internal = require("bindings")("node_jsbr");
+// const _internal = window.myAPI.node_jsbr;
 const wrapper_utils = require("./wrapper_utils");
+// const wrapper_utils = window.myAPI.wrapper_utils;
 
 function openFile(cm, aSc, aPath, newobj_name, newobj_type, rdr_name, aOptions)
 {
@@ -85,7 +87,7 @@ function createRend(cm, aObj, aRendType, aRendName, aSelStr)
     return rend;
 }
 
-module.exports = class Manager {
+class Manager {
     constructor() {
         // for program object
         this._prog_data = {};
@@ -107,8 +109,8 @@ module.exports = class Manager {
         // vw.name = "Primary View";
         this._view = vw;
 
-        this.loadTestRend(wrapper_utils, scene, vw);
-        // this.loadTestPDB(wrapper_utils, scene, vw);
+        // this.loadTestRend(wrapper_utils, scene, vw);
+        this.loadTestPDB(wrapper_utils, scene, vw);
     }
 
     loadTestRend(cuemol, scene, vw) {
@@ -124,13 +126,31 @@ module.exports = class Manager {
     
     loadTestPDB(cuemol, scene, vw) {
         let path = "./src/data/1CRN.pdb"
-        let mol = openFile(cuemol, scene, path, "1CRN.pdb", null, "pdb", null);
-        let rend = createRend(cuemol, mol, "simple", "simple1", "*");
-        rend.name = "my renderer";
-        rend.applyStyles("DefaultCPKColoring");
-        let pos = rend.getCenter();
-        console.log("view center:"+pos.toString());
-        vw.setViewCenter(pos);
+
+        let cmdMgr = cuemol.getService("CmdMgr");
+        
+        let load_object = cmdMgr.getCmd("load_object");
+        load_object.target_scene = scene;
+        load_object.file_path = path;
+        // load_object.object_name ="1CRN.pdb";
+        load_object.run();
+        let mol = load_object.result_object;        
+        // let mol = openFile(cuemol, scene, path, "1CRN.pdb", null, "pdb", null);
+
+        let new_rend = cmdMgr.getCmd("new_renderer");
+        new_rend.target_object = mol;
+        new_rend.renderer_type = "simple";
+        new_rend.renderer_name = "simple1";
+        new_rend.recenter_view = true;
+        new_rend.default_style_name = "DefaultCPKColoring";
+        new_rend.run();
+        
+        // let rend = createRend(cuemol, mol, "simple", "simple1", "*");
+        // rend.name = "my renderer";
+        // rend.applyStyles("DefaultCPKColoring");
+        // let pos = rend.getCenter();
+        // console.log("view center:"+pos.toString());
+        // vw.setViewCenter(pos);
     }
 
     test() {
@@ -391,7 +411,6 @@ module.exports = class Manager {
             if (index_buf !== null && ibo !== null) {
                 gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo);
                 gl.bufferSubData(gl.ELEMENT_ARRAY_BUFFER, 0, index_buf);
-                // gl.bufferSubData(gl.ELEMENT_ARRAY_BUFFER, 0, new Int32Array([0, 1, 2]));
                 gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
             }
         }
@@ -410,9 +429,8 @@ module.exports = class Manager {
             gl.drawArrays(nglmode, 0, nelems);
         }
         else {
-            console.log("drawelem nelems=", nelems);
+            // console.log("drawelem nelems=", nelems);
             gl.drawElements(nglmode, nelems, gl.UNSIGNED_INT, 0);
-            // gl.drawElements(nglmode, 3, gl.UNSIGNED_INT, 0);
         }
         gl.bindVertexArray(null);
     }
@@ -438,4 +456,8 @@ module.exports = class Manager {
 
         return true;
     }
+}
+
+module.exports.create = function () {
+    return new Manager();
 }

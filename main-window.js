@@ -1,6 +1,14 @@
 console.log("Initializing...");
 const CueMolMgr = require("./cuemol_system");
-let mgr = new CueMolMgr();
+// const CueMolMgr = window.myAPI.cuemol_system;
+const cuemol = require("./wrapper_utils");
+// const cuemol = window.myAPI.wrapper_utils;
+
+console.log("CueMolMgr: ", CueMolMgr);
+
+// let mgr = new CueMolMgr();
+let mgr = CueMolMgr.create();
+console.log("mgr: ", mgr);
 // mgr.test();
 
 let fpsElem, canvas;
@@ -74,3 +82,24 @@ let timer_update_canvas = (timestamp) => {
 }
 
 window.requestAnimationFrame(timer_update_canvas);
+
+require('electron').ipcRenderer.on('open-file', (event, message) => {
+    console.log(message);
+    let file_path = message[0];
+    let scene = mgr._view.getScene();
+    let cmdMgr = cuemol.getService("CmdMgr");
+
+    let load_object = cmdMgr.getCmd("load_object");
+    load_object.target_scene = scene;
+    load_object.file_path = file_path;
+    load_object.run();
+    let mol = load_object.result_object;        
+
+    let new_rend = cmdMgr.getCmd("new_renderer");
+    new_rend.target_object = mol;
+    new_rend.renderer_type = "simple";
+    new_rend.renderer_name = "simple1";
+    new_rend.recenter_view = true;
+    new_rend.default_style_name = "DefaultCPKColoring";
+    new_rend.run();
+})
