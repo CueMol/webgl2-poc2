@@ -39,6 +39,11 @@ public:
         return false;
     }
 
+    void renderTriangles(DisplayContext *pdl);
+    void renderTriangleStrip(DisplayContext *pdl);
+
+    void renderLines(DisplayContext *pdl);
+    void renderLineStrip(DisplayContext *pdl);
 };
 
 }  // namespace qsys

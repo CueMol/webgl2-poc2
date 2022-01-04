@@ -4,12 +4,14 @@
 
 #include <random>
 #include <vector>
-#include "random_generator.hpp"
+
 #include "draw_attr_elems.hpp"
+#include "random_generator.hpp"
 
 namespace gfx_render {
 
-struct DrawElem {
+struct DrawElem
+{
     float x, y, z;
     float r, g, b, a;
 };
@@ -22,7 +24,7 @@ private:
 public:
     static Napi::Object Init(Napi::Env env, Napi::Object exports);
     Proxy(const Napi::CallbackInfo& info);
-    
+
 private:
     Napi::Value SetManager(const Napi::CallbackInfo& info);
     Napi::Value Create(const Napi::CallbackInfo& info);
@@ -49,20 +51,20 @@ private:
     inline double randomUniform()
     {
         return rng_.randomUniform();
-    }        
+    }
 
     constexpr static int VERTEX_SIZE = 3;  // vec3
     constexpr static int COLOR_SIZE = 4;   // vec4
     constexpr static int STRIDE_SIZE = VERTEX_SIZE + COLOR_SIZE;
-    
-    constexpr static int VERTEX_NUMS = 6 * 1000; // * 1000;
+
+    constexpr static int VERTEX_NUMS = 6 * 1000;  // * 1000;
     constexpr static int TRIANGLE_NUMS = VERTEX_NUMS / 3;
     constexpr static float scl = 1.0f;
 
-    inline void updateData(float *pbuf)
+    inline void updateData(float* pbuf)
     {
         for (size_t i = 0; i < VERTEX_NUMS; ++i) {
-        // for (size_t i = 0; i < VERTEX_NUMS/2; ++i) {
+            // for (size_t i = 0; i < VERTEX_NUMS/2; ++i) {
             const int bias = STRIDE_SIZE * i;
             pbuf[bias + 0] += randomUniform() * scl;
             pbuf[bias + 1] += randomUniform() * scl;
@@ -75,10 +77,10 @@ private:
     }
 
     int createBuffer(const Napi::CallbackInfo& info, int buffer_size, int nelems);
-    float *getBuffer(const Napi::CallbackInfo& info, int bufid);
+    float* getBuffer(const Napi::CallbackInfo& info, int bufid);
     void sendBuffer(const Napi::CallbackInfo& info, int bufid);
 
     int createShader(const Napi::CallbackInfo& info);
 };
 
-}
+}  // namespace gfx_render

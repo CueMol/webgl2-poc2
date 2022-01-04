@@ -1,4 +1,5 @@
 const node_jsbr = require("bindings")("node_jsbr");
+// const node_jsbr = window.myAPI.node_jsbr;
 
 let Utils = Object();
 

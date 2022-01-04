@@ -3,28 +3,25 @@
 #include <napi.h>
 
 #include <qlib/MatrixND.hpp>
-#include <qsys/Scene.hpp>
-#include <qsys/View.hpp>
-#include <qsys/qsys.hpp>
-
+#include <qsys/EsView.hpp>
 #include <qsys/MouseEventHandler.hpp>
+#include <qsys/Scene.hpp>
+#include <qsys/qsys.hpp>
 
 namespace node_jsbr {
 
 class ElecDisplayContext;
-using Matrix4F = qlib::MatrixND<4, float>;
 
-class ElecView : public qsys::View
+class ElecView : public qsys::EsView
 {
     MC_SCRIPTABLE;
+    using super_t = qsys::EsView;
 
 private:
     ElecDisplayContext *m_pCtxt;
 
     /// JS-side WebGL display manager
     Napi::ObjectReference m_peerObjRef;
-
-    Matrix4F m_modelMat, m_projMat;
 
     Napi::ObjectReference m_modelArrayBuf, m_projArrayBuf;
 
@@ -38,9 +35,9 @@ public:
     //////////
 
 public:
-    bool init();
-
     virtual LString toString() const;
+
+    virtual gfx::DisplayContext *getDisplayContext();
 
     /// Setup the projection matrix for stereo (View interface)
     virtual void setUpModelMat(int nid);
@@ -50,15 +47,6 @@ public:
 
     /// Draw current scene
     virtual void drawScene();
-
-    virtual gfx::DisplayContext *getDisplayContext();
-
-    void onMouseDown(double clientX, double clientY, double screenX, double screenY,
-                     int modif);
-    void onMouseUp(double clientX, double clientY, double screenX, double screenY,
-                   int modif);
-    void onMouseMove(double clientX, double clientY, double screenX, double screenY,
-                     int modif);
 
     //////////
 
@@ -72,17 +60,6 @@ public:
 private:
     void clear(const gfx::ColorPtr &col);
 
-    qsys::MouseEventHandler m_meh;
-
-    static const int DME_MOUSE_DOWN = 0;
-    static const int DME_MOUSE_MOVE = 1;
-    static const int DME_MOUSE_UP = 2;
-    static const int DME_WHEEL = 3;
-    static const int DME_DBCHK_TIMEUP = 4;
-
-    void setupInDevEvent(double clientX, double clientY, double screenX, double screenY,
-                         int modif, qsys::InDevEvent &ev);
-    void dispatchMouseEvent(int nType, qsys::InDevEvent &ev);
 };
 
 class ElecViewFactory : public qsys::ViewFactory

@@ -64,6 +64,10 @@ command/CmdMgr.cpp
 TestRenderer.cpp
 TestDLRenderer.cpp
 MouseEventHandler.cpp
+EsView.cpp
+EsDisplayContext.cpp
+EsDisplayList.cpp
+ProgObjMgr.cpp
   )
 
 # CueMol interface definitions for MCWRAPGEN

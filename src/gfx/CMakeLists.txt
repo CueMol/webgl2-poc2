@@ -29,7 +29,7 @@ DisplayContext.cpp
 TextRenderManager.cpp
 ColorTable.cpp
 StrColorFormat.cpp
-Mesh.cpp
+FixedMesh.cpp
 Material.cpp
 PixelBuffer.cpp
 ColCompiler.cpp
