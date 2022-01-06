@@ -74,3 +74,23 @@ install(TARGETS node_jsbr
   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
   )
+
+SET(JS_OUTPUT_DIR ${CMAKE_BINARY_DIR}/javascript)
+
+add_custom_command(
+  TARGET node_jsbr POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy
+  ${CMAKE_CURRENT_SOURCE_DIR}/es6/cuemol.js
+  ${JS_OUTPUT_DIR}/cuemol.js
+  )
+add_custom_command(
+  TARGET node_jsbr POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy
+  ${CMAKE_CURRENT_SOURCE_DIR}/es6/base_wrapper.js
+  ${JS_OUTPUT_DIR}/base_wrapper.js
+  )
+
+add_custom_command(
+  TARGET node_jsbr POST_BUILD
+  COMMAND python3 ${CMAKE_SOURCE_DIR}/src/python/make_wrapper_table.py --input_dir ${CMAKE_BINARY_DIR}/javascript/wrappers --output_js ${JS_OUTPUT_DIR}/wrapper_loader.js
+  )

@@ -116,6 +116,51 @@ Napi::String getAllClassNamesJSON(const Napi::CallbackInfo &info)
     return Napi::String::New(env, rstr.c_str());
 }
 
+Napi::Value getClassName(const Napi::CallbackInfo &info)
+{
+    Napi::Env env = info.Env();
+    printf("getClassName called\n");
+
+    if (info.Length() != 1) {
+        Napi::TypeError::New(env, "Wrong number of arguments")
+            .ThrowAsJavaScriptException();
+        return env.Null();
+    }
+    auto value = info[0];
+    if (!value.IsObject()) {
+        Napi::TypeError::New(env, "Wrong type of argument 0")
+            .ThrowAsJavaScriptException();
+        return env.Null();
+    }
+    auto obj = value.ToObject();
+    Wrapper *pWrapper;
+    try {
+        pWrapper = Wrapper::Unwrap(obj);
+    }
+    catch (...) {
+        printf("unwrap failed\n");
+        throw;
+    }
+    printf("getClassName pWrapper=%p\n", pWrapper);
+    auto pScObj = pWrapper->getWrapped();
+    printf("getClassName pScObj=%p\n", pScObj);
+
+    qlib::LString str;
+    if (pScObj) {
+        qlib::LClass *pCls = pScObj->getClassObj();
+        if (pCls) {
+            str = pCls->getClassName();
+        } else {
+            str = "(unknown)";
+        }
+
+    } else {
+        str = "(null)";
+    }
+
+    return Napi::String::New(env, str.c_str());
+}
+
 Napi::Value getService(const Napi::CallbackInfo &info)
 {
     printf("getService called\n");
@@ -256,6 +301,8 @@ Napi::Object Init(Napi::Env env, Napi::Object exports)
 
     exports.Set(Napi::String::New(env, "getAllClassNamesJSON"),
                 Napi::Function::New(env, node_jsbr::getAllClassNamesJSON));
+    exports.Set(Napi::String::New(env, "getClassName"),
+                Napi::Function::New(env, node_jsbr::getClassName));
 
     exports.Set(Napi::String::New(env, "getService"),
                 Napi::Function::New(env, node_jsbr::getService));

@@ -13,7 +13,7 @@ use Utils;
 use Parser;
 
 our $out_dir;
-our $for_web = 1;
+our $es6_mod = 1;
 our $utils_module_path = "../utils_module";
 
 ##########
@@ -49,13 +49,13 @@ sub genJsWrapper($)
   print OUT "// Javascript wrapper class for $qifname\n";
   print OUT "//\n";
   print OUT "\n";
-  if ($for_web) {
-      print OUT "import BaseWrapper from '../base_wrapper';\n";
+  if ($es6_mod) {
+      print OUT "import { BaseWrapper } from '../base_wrapper';\n";
       print OUT "\n";
-      print OUT "export default class ${js_clsname} extends BaseWrapper {\n";
+      print OUT "export class ${js_clsname} extends BaseWrapper {\n";
   }
   else {
-      print OUT "const utils = require(\"$utils_module_path\");\n";
+      print OUT "const utils = require(\'$utils_module_path\');\n";
       print OUT "\n";
       print OUT "class ${js_clsname} extends utils.BaseWrapper {\n";
       print OUT "\n";
@@ -74,7 +74,7 @@ sub genJsWrapper($)
   print OUT "\n";
   genJsImplData($js_clsname, $qifname);
   print OUT "\n";
-  if ($for_web) {
+  if ($es6_mod) {
   }
   else {
       print OUT "module.exports = ${js_clsname};\n";
@@ -100,7 +100,7 @@ sub genJsSupclsCodeImpl($$)
   print OUT "\n";
 
   # my $clskey = "\@implements_$supcls_name";
-  # print OUT "${class_name}[\"$clskey\"] = \"yes\";\n\n";
+  # print OUT "${class_name}[\'$clskey\'] = \'yes\';\n\n";
 
   genJsPropCode($supcls, $class_name);
   genJsInvokeCode($supcls, $class_name);
@@ -117,7 +117,7 @@ sub genJsImplData($$)
   }
 
   my $clskey = "\@implements_$supcls_name";
-  print OUT "${class_name}.prototype[\"$clskey\"] = \"yes\";\n";
+  print OUT "${class_name}.prototype[\'$clskey\'] = \'yes\';\n";
 }
 
 sub genJsPropCode($$)
@@ -152,14 +152,14 @@ sub genJsBasicPropCode($$$)
   my $prop = shift;
 
   print OUT "  get $propnm() {\n";
-  print OUT "    return this.getProp(\"$propnm\");\n";
+  print OUT "    return this.getProp(\'$propnm\');\n";
   print OUT "  }\n";
   print OUT "\n";
       
   return if (contains($prop->{"options"}, "readonly"));
 
   print OUT "  set $propnm(arg0) {\n";
-  print OUT "    this.setProp(\"$propnm\", arg0);\n";
+  print OUT "    this.setProp(\'$propnm\', arg0);\n";
   print OUT "  }\n";
   print OUT "\n";
 }
@@ -178,7 +178,7 @@ sub genJsEnumPropCode($$$)
     my $value = $enums{$defnm};
 
     print OUT "  get $key() {\n";
-    print OUT "    return this.getEnumDef(\"$propnm\", \"$defnm\");\n";
+    print OUT "    return this.getEnumDef(\'$propnm\', \'$defnm\');\n";
     print OUT "  }\n";
     print OUT "\n";
   }	  
@@ -198,14 +198,13 @@ sub genJsInvokeCode($$)
   foreach my $nm (sort keys %mths) {
     my $mth = $mths{$nm};
     my $nargs = int(@{$mth->{"args"}});
-
     my $rettype = $mth->{"rettype"};
     my $rval_typename = $rettype->{"type"};
 
     print OUT "  // method: $nm\n";
 
     print OUT "  ${nm}(".makeMthSignt($mth).") {\n";
-    print OUT "    return this.invokeMethod(".makeMthArg($mth).")\n";
+    print OUT "    return this.invokeMethod(".makeMthArg($mth).");\n";
     print OUT "  };\n";
     print OUT "\n";
   }
@@ -233,7 +232,7 @@ sub makeMthArg($)
   my $args = $mth->{"args"};
   my $name = $mth->{"name"};
 
-  my @rval = ("\"$name\"");
+  my @rval = ("\'$name\'");
 
   my $ind = 0;
   foreach my $arg (@{$args}) {

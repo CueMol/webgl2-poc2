@@ -24,19 +24,19 @@ def main():
 
         for in_js in file_list:
             stem = in_js.stem
-            f.write(f"import {stem} from './wrappers/{stem}.js'\n")
+            f.write(f"import {{ {stem} }} from './wrappers/{stem}.js'\n")
 
         f.write("\n")
         f.write("\n")
-        f.write("let wrapper_map = {\n")
+        f.write("const wrapper_map = {\n")
 
         for in_js in file_list:
             stem = in_js.stem
-            f.write(f"    \"{stem}\": {stem},\n")
+            f.write(f"    \'{stem}\': {stem},\n")
 
         f.write("};\n")
         f.write("\n")
-        f.write("export { wrapper_map as default };\n")
+        f.write("export { wrapper_map };\n")
         f.write("\n")
 
     print(f"output {args.output_js} ok")

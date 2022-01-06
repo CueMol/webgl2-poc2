@@ -14,6 +14,7 @@ use Parser;
 
 our $out_dir;
 
+our $use_es6_mod = 1;
 our $js_nsname = "wrapper";
 
 ##########
@@ -42,26 +43,45 @@ sub genJsWrapper($)
   open(OUT, ">$out_fname") || die "$?:$!";
   set_building_file($out_fname);
 
-  my $js_clsname = $js_nsname."_".$qifname;
-
   print OUT "/////////////////////////////////////\n";
   print OUT "//\n";
   print OUT "// Javascript wrapper class for $qifname\n";
   print OUT "//\n";
   print OUT "\n";
+  my $js_clsname;
   # print OUT "var EXPORTED_SYMBOLS = [\"${js_clsname}\"];\n";
-  print OUT "\n";
-  print OUT "${js_clsname} = function ${qifname}_ctor(aWrapped, aUtil)\n";
-  print OUT "{\n";
-  print OUT "  this._wrapped = aWrapped;\n";
-  print OUT "  this._utils = aUtil;\n";
-  print OUT "}\n";
-  print OUT "\n";
-  print OUT "module.exports.constructor = ${js_clsname};\n";
-  print OUT "\n";
+  if ($use_es6_mod) {
+      $js_clsname = $qifname;
+  
+      print OUT "\n";
+      print OUT "import { BaseWrapper } from '../base_wrapper';\n";
+      print OUT "\n";
+      print OUT "export class ${js_clsname} extends BaseWrapper {\n";
+  }
+  else {
+      $js_clsname = $js_nsname."_".$qifname;
+  
+      print OUT "\n";
+      print OUT "${js_clsname} = function ${qifname}_ctor(aWrapped, aUtil)\n";
+      print OUT "{\n";
+      print OUT "  this._wrapped = aWrapped;\n";
+      print OUT "  this._utils = aUtil;\n";
+      print OUT "}\n";
+      print OUT "\n";
+      print OUT "module.exports.constructor = ${js_clsname};\n";
+      print OUT "\n";
+  }
 
   genJsSupclsCodeImpl($js_clsname, $qifname);
 
+  if ($use_es6_mod) {
+      print OUT "\n";
+      print OUT "}\n";
+      print OUT "\n";
+      genJsES6ImplData($js_clsname, $qifname);
+      print OUT "\n";
+  }
+  
   close(OUT);
 }
 		   
@@ -80,9 +100,14 @@ sub genJsSupclsCodeImpl($$)
   print OUT "//\n";
   print OUT "\n";
 
-  my $clskey = "\@implements_$supcls_name";
-  print OUT "${class_name}[\"$clskey\"] = \"yes\";\n\n";
-
+  if ($use_es6_mod) {
+      ;
+  }
+  else {
+      my $clskey = "\@implements_$supcls_name";
+      print OUT "${class_name}[\"$clskey\"] = \"yes\";\n\n";
+  }
+  
   genJsPropCode($supcls, $class_name);
   genJsInvokeCode($supcls, $class_name);
 }
@@ -121,19 +146,36 @@ sub genJsBasicPropCode($$$)
   my $propnm = shift;
   my $prop = shift;
 
-  print OUT "${classnm}.prototype.__defineGetter__(\"$propnm\", function()\n";
-  print OUT "{\n";
-  print OUT "  return this._wrapped.getProp(\"$propnm\");\n";
-  print OUT "});\n";
-  print OUT "\n";
-      
+  if ($use_es6_mod) {
+      print OUT "  get $propnm() {\n";
+      print OUT "    return this.getProp(\'$propnm\');\n";
+      print OUT "  }\n";
+      print OUT "\n";
+  }      
+  else {
+      print OUT "${classnm}.prototype.__defineGetter__(\"$propnm\", function()\n";
+      print OUT "{\n";
+      print OUT "  return this._wrapped.getProp(\"$propnm\");\n";
+      print OUT "});\n";
+      print OUT "\n";
+  }
+  
   return if (contains($prop->{"options"}, "readonly"));
+      
+  if ($use_es6_mod) {
+      print OUT "  set $propnm(arg0) {\n";
+      print OUT "    this.setProp(\'$propnm\', arg0);\n";
+      print OUT "  }\n";
+      print OUT "\n";
+  }
+  else {
+      print OUT "${classnm}.prototype.__defineSetter__(\"$propnm\", function(arg0)\n";
+      print OUT "{\n";
+      print OUT "  this._wrapped.setProp(\"$propnm\", arg0);\n";
+      print OUT "});\n";
+      print OUT "\n";
+  }
 
-  print OUT "${classnm}.prototype.__defineSetter__(\"$propnm\", function(arg0)\n";
-  print OUT "{\n";
-  print OUT "  this._wrapped.setProp(\"$propnm\", arg0);\n";
-  print OUT "});\n";
-  print OUT "\n";
 }
 
 sub genJsObjPropCode($$$)
@@ -144,20 +186,36 @@ sub genJsObjPropCode($$$)
 
   my $propqif = $prop->{"qif"};
 
-  print OUT "${classnm}.prototype.__defineGetter__(\"$propnm\", function()\n";
-  print OUT "{\n";
-  # print OUT "  return this._cuemol.utils.convPolymObj(this._wrapped.getProp(\"$propnm\"));\n";
-  print OUT "  return this._utils.createWrapper(this._wrapped.getProp(\"$propnm\"));\n";
-  print OUT "});\n";
-  print OUT "\n";
-      
+  if ($use_es6_mod) {
+      print OUT "  get $propnm() {\n";
+      print OUT "    const result = this.getProp(\'$propnm\');\n";
+      print OUT "    return this.createWrapper(result);\n";
+      print OUT "  }\n";
+      print OUT "\n";
+  }
+  else {
+      print OUT "${classnm}.prototype.__defineGetter__(\"$propnm\", function()\n";
+      print OUT "{\n";
+      print OUT "  return this._utils.createWrapper(this._wrapped.getProp(\"$propnm\"));\n";
+      print OUT "});\n";
+      print OUT "\n";
+  }
+  
   return if (contains($prop->{"options"}, "readonly"));
 
-  print OUT "${classnm}.prototype.__defineSetter__(\"$propnm\", function(arg0)\n";
-  print OUT "{\n";
-  print OUT "  this._wrapped.setProp(\"$propnm\", arg0._wrapped);\n";
-  print OUT "});\n";
-  print OUT "\n";
+  if ($use_es6_mod) {
+      print OUT "  set $propnm(arg0) {\n";
+      print OUT "    this.setProp(\'$propnm\', arg0.wrapped);\n";
+      print OUT "  }\n";
+      print OUT "\n";
+  }
+  else {
+      print OUT "${classnm}.prototype.__defineSetter__(\"$propnm\", function(arg0)\n";
+      print OUT "{\n";
+      print OUT "  this._wrapped.setProp(\"$propnm\", arg0._wrapped);\n";
+      print OUT "});\n";
+      print OUT "\n";
+  }
 }
 
 sub genJsEnumPropCode($$$)
@@ -173,15 +231,21 @@ sub genJsEnumPropCode($$$)
     my $key = $propnm."_".uc($defnm);
     my $value = $enums{$defnm};
 
-    print OUT "\n";
-    print OUT "${classnm}.prototype.__defineGetter__(\"$key\", function()\n";
-    print OUT "{\n";
-    print OUT "  return this._wrapped.getEnumDef(\"$propnm\", \"$defnm\");\n";
-    print OUT "});\n";
-    print OUT "\n";
-
+    if ($use_es6_mod) {
+        print OUT "  get $key() {\n";
+        print OUT "    return this.getEnumDef(\'$propnm\', \'$defnm\');\n";
+        print OUT "  }\n";
+        print OUT "\n";
+    }
+    else {
+        print OUT "\n";
+        print OUT "${classnm}.prototype.__defineGetter__(\"$key\", function()\n";
+        print OUT "{\n";
+        print OUT "  return this._wrapped.getEnumDef(\"$propnm\", \"$defnm\");\n";
+        print OUT "});\n";
+        print OUT "\n";
+    }
   }	  
-
 }
 
 #####################
@@ -198,54 +262,59 @@ sub genJsInvokeCode($$)
   foreach my $nm (sort keys %mths) {
     my $mth = $mths{$nm};
     my $nargs = int(@{$mth->{"args"}});
-
     my $rettype = $mth->{"rettype"};
     my $rval_typename = $rettype->{"type"};
 
     print OUT "// method: $nm\n";
 
-    print OUT "${classnm}.prototype.${nm} = function(".makeMthSignt($mth).") {\n";
-
-    if ($rval_typename ne "void") {
-      print OUT "  var rval = ";
+    if ($use_es6_mod) {
+        print OUT "  ${nm}(".makeMthSignt($mth).") {\n";
+        if ($rval_typename ne "void") {
+            print OUT "    const result = ";
+        }
+        else {
+            print OUT "    ";
+        }
+        print OUT "this.invokeMethod(".makeMthArg($mth).");\n";
     }
     else {
-      print OUT "  ";
+        print OUT "${classnm}.prototype.${nm} = function(".makeMthSignt($mth).") {\n";
+        if ($rval_typename ne "void") {
+            print OUT "  var rval = ";
+        }
+        else {
+            print OUT "  ";
+        }
+        print OUT "this._wrapped.invokeMethod(".makeMthArg($mth).")\n";
     }
-    
-    # if (checkCallbackReg($mth)) {
-    #   print OUT "  this._wrapped.invokeWithCallback1(\"$nm\", arg_0)\n";
-    #   print OUT "  return rval;\n";
-    #   print OUT "};\n";
-    #   print OUT "\n";
-    #   next;
-    # }
-    
-    # if ($nargs<6) {
-    #   print OUT "this._wrapped.invoke${nargs}(".makeMthArg($mth).")\n";
-    # }
-    # else {
-    #   print OUT "this._wrapped.invoke(".makeMthArg2($mth).")\n";
-    # }
-    
-    print OUT "this._wrapped.invokeMethod(".makeMthArg($mth).")\n";
 
-    if ($rval_typename eq "object") {
-      my $rettype_qif = $rettype->{"qif"};
-      # print OUT "  return this._cuemol.utils.convPolymObj(rval);\n";
-      print OUT "  return this._utils.createWrapper(rval);\n";
+    if ($use_es6_mod) {
+        if ($rval_typename eq "object") {
+            print OUT "    return this.createWrapper(result);\n";
+        }
+        elsif ($rval_typename eq "void") {
+            # No return code
+        }
+        else {
+            # basic types
+            print OUT "    return result;\n";
+        }
+        print OUT "  };\n";
     }
-    elsif ($rval_typename eq "void") {
-      # No return code
-    }
-    # elsif ($rval_typename eq "enum") {
-    # }
     else {
-      # basic types
-      print OUT "  return rval;\n";
+        if ($rval_typename eq "object") {
+            # my $rettype_qif = $rettype->{"qif"};
+            print OUT "  return this._utils.createWrapper(rval);\n";
+        }
+        elsif ($rval_typename eq "void") {
+            # No return code
+        }
+        else {
+            # basic types
+            print OUT "  return rval;\n";
+        }
+        print OUT "};\n";
     }
-
-    print OUT "};\n";
     print OUT "\n";
   }
 
@@ -278,7 +347,12 @@ sub makeMthArg($)
   foreach my $arg (@{$args}) {
     my $arg_type = $arg->{"type"};
     if ($arg_type eq "object") {
-      push(@rval, "arg_${ind}._wrapped");
+        if ($use_es6_mod) {
+            push(@rval, "arg_${ind}.wrapped");
+        }
+        else {
+            push(@rval, "arg_${ind}._wrapped");
+        }
     }
     else {
       push(@rval, "arg_$ind");
@@ -288,42 +362,56 @@ sub makeMthArg($)
   return join(", ", @rval);
 }
 
-sub makeMthArg2($)
+# sub makeMthArg2($)
+# {
+#   my $mth = shift;
+#   my $args = $mth->{"args"};
+#   my $name = $mth->{"name"};
+
+#   my @rval;
+
+#   my $ind = 0;
+#   foreach my $arg (@{$args}) {
+#     my $arg_type = $arg->{"type"};
+#     if ($arg_type eq "object") {
+#       push(@rval, "arg_${ind}._wrapped");
+#     }
+#     else {
+#       push(@rval, "arg_$ind");
+#     }
+#     ++$ind;
+#   }
+
+#   return "\"$name\"" . ", [" . join(", ", @rval) . "]";
+# }
+
+# sub checkCallbackReg($)
+# {
+#   my $mth = shift;
+#   my $args = $mth->{"args"};
+#   my $name = $mth->{"name"};
+
+#   return 0 if (!defined($args->[0]));
+#   my $arg = $args->[0];
+
+#   return 0 if ($arg->{"type"} ne "object");
+
+#   return 1 if ($arg->{"qif"} eq "LScrCallBack");
+#   return 0;
+# }
+
+sub genJsES6ImplData($$)
 {
-  my $mth = shift;
-  my $args = $mth->{"args"};
-  my $name = $mth->{"name"};
+  my ($class_name, $supcls_name) = @_;
+  my $supcls = $Parser::db{$supcls_name};
 
-  my @rval;
-
-  my $ind = 0;
-  foreach my $arg (@{$args}) {
-    my $arg_type = $arg->{"type"};
-    if ($arg_type eq "object") {
-      push(@rval, "arg_${ind}._wrapped");
-    }
-    else {
-      push(@rval, "arg_$ind");
-    }
-    ++$ind;
+  my @extends = @{$supcls->{"extends"}} if ($supcls->{"extends"});
+  foreach my $i (@extends) {
+      genJsES6ImplData($class_name, $i);
   }
 
-  return "\"$name\"" . ", [" . join(", ", @rval) . "]";
-}
-
-sub checkCallbackReg($)
-{
-  my $mth = shift;
-  my $args = $mth->{"args"};
-  my $name = $mth->{"name"};
-
-  return 0 if (!defined($args->[0]));
-  my $arg = $args->[0];
-
-  return 0 if ($arg->{"type"} ne "object");
-
-  return 1 if ($arg->{"qif"} eq "LScrCallBack");
-  return 0;
+  my $clskey = "\@implements_$supcls_name";
+  print OUT "${class_name}.prototype[\'$clskey\'] = \'yes\';\n";
 }
 
 1;
